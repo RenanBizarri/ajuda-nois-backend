@@ -1,30 +1,28 @@
-import Achievement from "../models/achievementModel";
+import Enem from "../models/enemModel";
 
 module.exports = {
     async create(req: any, res: any){
         try{
             let {
-                icon,
-                name,
-                description,
-                experience
+                year,
+                exam,
+                template
             } = req.body
 
             // Verifica se os campos estão preenchidos
-            if(!icon || !name || !description || !experience){
+            if(!year || !exam || !template){
                 return res.status(400).json({
-                    error: "Preencha todos os campos."
+                    error: "Campos não preenchidos."
                 });
             }
 
-            const achievement = await new Achievement({
-                icon, 
-                name, 
-                description, 
-                experience
+            const enem = await new Enem({
+                year, 
+                exam, 
+                template
             }).save()
 
-            return res.status(200).json(achievement)
+            return res.status(200).json(enem)
 
         }catch(error: any){
             console.log("Error: " + error);
@@ -38,41 +36,39 @@ module.exports = {
         try{
             let {
                 id,
-                icon,
-                name,
-                description,
-                experience
+                year,
+                exam,
+                template
             } = req.body
     
             if(!id){
                 return res.status(400).json({
-                    error: "Sem id da conquista para atualizar"
+                    error: "Sem id do ENEM para atualizar"
                 });
             }
     
             // Verifica se os campos estão preenchidos
-            if(!icon && !name && !description && !experience){
+            if(!year && !exam && !template){
                 return res.status(400).json({
                     error: "Nenhum campo para atualizar."
                 });
             }
 
-            let achievement = await Achievement.findById(id)
+            let enem = await Enem.findById(id)
 
-            if(!achievement){
+            if(!enem){
                 return res.status(400).json({
-                    error: "Conquista não encontrada."
+                    error: "ENEM não encontrado."
                 });
             }
 
-            if(icon) achievement.icon = icon
-            if(name) achievement.name = name
-            if(description) achievement.description = description
-            if(experience) achievement.experience = experience
+            if(year) enem.year = year
+            if(exam) enem.exam = exam
+            if(template) enem.template = template
 
-            await achievement.save()
+            await enem.save()
 
-            return res.status(200).json(achievement)
+            return res.status(200).json(enem)
 
         }catch(error: any){
             console.log("Error: " + error);
@@ -90,14 +86,14 @@ module.exports = {
     
             if(!id){
                 return res.status(400).json({
-                    error: "Sem id da conquista para excluir"
+                    error: "Sem id do ENEM para excluir"
                 });
             }
     
-            await Achievement.findByIdAndDelete(id)
+            await Enem.findByIdAndDelete(id)
     
             return res.status(200).json({
-                message: "Conquista excluida"
+                message: "ENEM excluido"
             })
         }catch(error: any){
             console.log("Error: " + error);
@@ -109,9 +105,9 @@ module.exports = {
 
     async findAll(req: any, res: any){
         try{
-            const achievement = await Achievement.find({})
+            const enem = await Enem.find({})
 
-            return res.status(200).json(achievement)
+            return res.status(200).json(enem)
         }catch(error: any){
             console.log("Error: " + error);
             return res.status(401).json({

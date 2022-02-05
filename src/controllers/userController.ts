@@ -86,10 +86,7 @@ module.exports = {
                 }).save()
             }
 
-            return res.json({
-                status: 200,
-                user
-            });
+            return res.status(200).json(user);
         
         }catch(error: any){
             console.log("Error: " + error);
@@ -114,5 +111,51 @@ module.exports = {
             user,
             token: generateToken( {id: user.id }),
         });
+    },
+
+    async delete(req: any, res: any){
+        try{
+            let {
+                id
+            } = req.body
+    
+            if(!id){
+                return res.status(400).json({
+                    error: "Sem id do Usuario para excluir"
+                });
+            }
+    
+            const user = await User.findById(id)
+
+            switch(user?.usertype){
+                case "admin":
+                    return res.status(401).json({
+                        message: "Não é possivel excluir o admin"
+                    })
+                    break
+                case "student":
+                    await User.findByIdAndDelete(id)
+                    await Student.deleteOne({user_id: id})
+                    break
+                case "teacher":
+                    await User.findByIdAndDelete(id)
+                    await Teacher.deleteOne({user_id: id})
+                    break
+                default:
+                    return res.status(401).json({
+                        message: "Tipo de usuario não identificado"
+                    })
+                    break
+            }
+    
+            return res.status(200).json({
+                message: "Usuario excluido excluido"
+            })
+        }catch(error: any){
+            console.log("Error: " + error);
+            return res.status(401).json({
+                error: error.message
+            });
+        }
     }
 }

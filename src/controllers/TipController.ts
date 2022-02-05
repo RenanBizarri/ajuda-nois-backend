@@ -1,30 +1,30 @@
-import Achievement from "../models/achievementModel";
+import Tip from "../models/tipModel";
 
 module.exports = {
     async create(req: any, res: any){
         try{
             let {
-                icon,
-                name,
-                description,
-                experience
+                topic,
+                information,
+                teacher_id,
+                color
             } = req.body
 
             // Verifica se os campos estão preenchidos
-            if(!icon || !name || !description || !experience){
+            if(!topic || !information || !teacher_id){
                 return res.status(400).json({
-                    error: "Preencha todos os campos."
+                    error: "Campos não preenchidos."
                 });
             }
 
-            const achievement = await new Achievement({
-                icon, 
-                name, 
-                description, 
-                experience
+            const tip = await new Tip({
+                topic, 
+                information, 
+                teacher_id, 
+                color
             }).save()
 
-            return res.status(200).json(achievement)
+            return res.status(200).json(tip)
 
         }catch(error: any){
             console.log("Error: " + error);
@@ -38,41 +38,39 @@ module.exports = {
         try{
             let {
                 id,
-                icon,
-                name,
-                description,
-                experience
+                topic,
+                information,
+                color
             } = req.body
     
             if(!id){
                 return res.status(400).json({
-                    error: "Sem id da conquista para atualizar"
+                    error: "Sem id da anotação para atualizar"
                 });
             }
     
             // Verifica se os campos estão preenchidos
-            if(!icon && !name && !description && !experience){
+            if(!topic && !information && !color){
                 return res.status(400).json({
                     error: "Nenhum campo para atualizar."
                 });
             }
 
-            let achievement = await Achievement.findById(id)
+            let tip = await Tip.findById(id)
 
-            if(!achievement){
+            if(!tip){
                 return res.status(400).json({
-                    error: "Conquista não encontrada."
+                    error: "Anotação não encontrada."
                 });
             }
 
-            if(icon) achievement.icon = icon
-            if(name) achievement.name = name
-            if(description) achievement.description = description
-            if(experience) achievement.experience = experience
+            if(topic) tip.topic = topic
+            if(information) tip.information = information
+            if(color) tip.color = color
 
-            await achievement.save()
+            await tip.save()
 
-            return res.status(200).json(achievement)
+            return res.status(200).json(tip)
 
         }catch(error: any){
             console.log("Error: " + error);
@@ -90,14 +88,14 @@ module.exports = {
     
             if(!id){
                 return res.status(400).json({
-                    error: "Sem id da conquista para excluir"
+                    error: "Sem id da anotação para excluir"
                 });
             }
     
-            await Achievement.findByIdAndDelete(id)
+            await Tip.findByIdAndDelete(id)
     
             return res.status(200).json({
-                message: "Conquista excluida"
+                message: "Anotação excluida"
             })
         }catch(error: any){
             console.log("Error: " + error);
@@ -109,9 +107,9 @@ module.exports = {
 
     async findAll(req: any, res: any){
         try{
-            const achievement = await Achievement.find({})
+            const tip = await Tip.find({})
 
-            return res.status(200).json(achievement)
+            return res.status(200).json(tip)
         }catch(error: any){
             console.log("Error: " + error);
             return res.status(401).json({
