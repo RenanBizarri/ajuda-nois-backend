@@ -11,17 +11,21 @@
 				{
 					"name": "createUser",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjIxZGFiZGU2OTJkMjMyZGI0YTQyYmY1IiwiaWF0IjoxNjQ2MTEzOTY2LCJleHAiOjE2NDYyMDAzNjZ9.ANPjMTfHPjJJ-jb-Yn4FFYbzCWnVZ_jJ4V7-oJg12y2tL1PaZ_3l9z7SJTEXuXerxM11_k1yMoDprGYOO8pXFY4Qt3tipdkM5LnwH0xun5o2PE9OzwR9tovX2JTdHsnnGU9osRto7uw0s2HmJfHhc0bNTMEo9jyPl3ccxcPkRRQ",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
-						"header": [
-							{
-								"key": "authorization",
-								"value": "Bearer ",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"username\": \"teste2\",\n    \"email\": \"renanbizarri@hotmail.com\",\n    \"password\": \"123456\",\n    \"usertype\": \"student\",\n    \"creatorEmail\": \"renan31bizarri@gmail.com\"\n}",
+							"raw": "{\n    \"username\": \"teacherRenan\",\n    \"email\": \"renanbizarri@hotmail.com\",\n    \"password\": \"123456\",\n    \"usertype\": \"teacher\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -115,14 +119,7 @@
 					"name": "login",
 					"request": {
 						"method": "POST",
-						"header": [
-							{
-								"key": "authorization",
-								"value": "Bearer ",
-								"type": "text",
-								"disabled": true
-							}
-						],
+						"header": [],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n    \"email\": \"renan31bizarri@gmail.com\",\n    \"password\": \"123456\"\n}",
