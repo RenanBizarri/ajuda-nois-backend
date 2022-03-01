@@ -1,5 +1,4 @@
 import mongoose from "mongoose"
-import Teacher from "./teacherModel";
 
 export interface ITip {
     topic: string,
@@ -19,7 +18,7 @@ export const TipSchema: mongoose.Schema = new mongoose.Schema<ITip>({
     },
     teacher_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: Teacher,
+        ref: 'Teacher',
         required: true
     },
     color: {

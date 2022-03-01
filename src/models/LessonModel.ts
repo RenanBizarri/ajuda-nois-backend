@@ -1,7 +1,7 @@
 import mongoose from "mongoose"
 
-import Subject from "./subjectModel"
-import Quiz from "./quizModel"
+import Subject from "./SubjectModel"
+import Quiz from "./QuizModel"
 
 export interface ILesson {
     title: string,

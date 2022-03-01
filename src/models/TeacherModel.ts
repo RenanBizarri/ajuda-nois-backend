@@ -1,8 +1,4 @@
-import mongoose, { mongo } from "mongoose"
-
-import User from "./userModel";
-import Tip from "./tipModel";
-import Subject from "./subjectModel";
+import mongoose from "mongoose"
 
 export interface ITeacher {
     user_id: mongoose.Schema.Types.ObjectId,
@@ -13,16 +9,16 @@ export interface ITeacher {
 export const TeacherSchema: mongoose.Schema = new mongoose.Schema<ITeacher>({
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: User,
+        ref: 'User',
         required: true
     },
     tips_id: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: Tip
+        ref: 'Tip'
     }],
     subjects_id: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: Subject
+        ref: 'Subject'
     }]
 })
 

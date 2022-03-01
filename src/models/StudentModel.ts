@@ -1,7 +1,7 @@
 import mongoose from "mongoose"
 
-import User from "./userModel";
-import Achievement from "./achievementModel"
+import User from "./UserModel";
+import Achievement from "./AchievementModel"
 
 export interface IStudent {
     user_id: mongoose.Schema.Types.ObjectId,
@@ -20,20 +20,21 @@ export interface IStudent {
     }],
     quizScore?: [{
         quiz_id: mongoose.Schema.Types.ObjectId,
-        score: number
+        score: number,
+        date: Date
     }]
 }
 
 export const StudentSchema: mongoose.Schema = new mongoose.Schema<IStudent>({
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: User,
+        ref: 'User',
         required: true
     },
     achievements: [{
         achievement_id: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: Achievement,
+            ref: 'Achievement',
             required: true
         },
         adiquired: {
@@ -65,11 +66,15 @@ export const StudentSchema: mongoose.Schema = new mongoose.Schema<IStudent>({
     quizScore: [{
         quiz_id: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: Achievement,
+            ref: 'Quiz',
             required: true
         },
         score: {
             type: Number,
+            required: true
+        },
+        date: {
+            type: Date,
             required: true
         }
     }]

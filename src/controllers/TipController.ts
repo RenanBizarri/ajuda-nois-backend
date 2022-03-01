@@ -1,6 +1,6 @@
-import Tip from "../models/tipModel";
+import Tip from "../models/TipModel";
 
-module.exports = {
+class TipController {
     async create(req: any, res: any){
         try{
             let {
@@ -32,7 +32,7 @@ module.exports = {
                 error: error.message
             });
         }
-    },
+    }
 
     async update(req: any, res: any){
         try{
@@ -78,7 +78,7 @@ module.exports = {
                 error: error.message
             });
         }
-    },
+    }
 
     async delete(req: any, res: any){
         try{
@@ -103,7 +103,7 @@ module.exports = {
                 error: error.message
             });
         }
-    },
+    }
 
     async findAll(req: any, res: any){
         try{
@@ -118,3 +118,5 @@ module.exports = {
         }
     }
 }
+
+export default new TipController()

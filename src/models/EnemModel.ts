@@ -9,15 +9,15 @@ export interface IEnem {
 export const EnemSchema: mongoose.Schema = new mongoose.Schema<IEnem>({
     year: {
         type: Number,
-        require: true
+        required: true
     },
     exam: {
         type: String,
-        require: true
+        required: true
     },
     template: {
         type: String,
-        require: true
+        required: true
     }
 })
 

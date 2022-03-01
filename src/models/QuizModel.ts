@@ -1,12 +1,12 @@
 import mongoose from "mongoose"
 
-import Subject from "./subjectModel"
-import Question from "./questionModel"
+import Subject from "./SubjectModel"
+import Question from "./QuestionModel"
 
 export interface IQuiz {
     name: string,
-    subject: mongoose.Schema.Types.ObjectId,
-    questions: [mongoose.Schema.Types.ObjectId]
+    subject_id: mongoose.Schema.Types.ObjectId,
+    questions_ids: [mongoose.Schema.Types.ObjectId]
 }
 
 export const QuizSchema: mongoose.Schema = new mongoose.Schema<IQuiz>({
@@ -14,12 +14,12 @@ export const QuizSchema: mongoose.Schema = new mongoose.Schema<IQuiz>({
         type: String,
         required: true,
     },
-    subject: {
+    subject_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: Subject,
         required: true
     },
-    questions: [{
+    questions_ids: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: Question,
         required: true

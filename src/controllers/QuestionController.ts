@@ -1,27 +1,28 @@
-import Enem from "../models/EnemModel";
-class EnemController {
+import Question from "../models/QuestionModel";
+
+class QuestionController {
     async create(req: any, res: any){
         try{
             let {
-                year,
-                exam,
-                template
+                questionHtml,
+                alternatives,
+                answer
             } = req.body
 
             // Verifica se os campos estão preenchidos
-            if(!year || !exam || !template){
+            if(!questionHtml || !alternatives || !answer){
                 return res.status(400).json({
-                    error: "Campos não preenchidos."
+                    error: "Preencha todos os campos."
                 });
             }
 
-            const enem = await new Enem({
-                year, 
-                exam, 
-                template
+            const question = await new Question({
+                questionHtml,
+                alternatives,
+                answer
             }).save()
 
-            return res.status(200).json(enem)
+            return res.status(200).json(question)
 
         }catch(error: any){
             console.log("Error: " + error);
@@ -35,39 +36,39 @@ class EnemController {
         try{
             let {
                 id,
-                year,
-                exam,
-                template
+                questionHtml,
+                alternatives,
+                answer
             } = req.body
     
             if(!id){
                 return res.status(400).json({
-                    error: "Sem id do ENEM para atualizar"
+                    error: "Sem id da questão para atualizar"
                 });
             }
     
             // Verifica se os campos estão preenchidos
-            if(!year && !exam && !template){
+            if(!questionHtml || !alternatives || !answer){
                 return res.status(400).json({
-                    error: "Nenhum campo para atualizar."
+                    error: "Preencha todos os campos."
                 });
             }
 
-            let enem = await Enem.findById(id)
+            let question = await Question.findById(id)
 
-            if(!enem){
+            if(!question){
                 return res.status(400).json({
-                    error: "ENEM não encontrado."
+                    error: "Questão não encontrada."
                 });
             }
 
-            if(year) enem.year = year
-            if(exam) enem.exam = exam
-            if(template) enem.template = template
+            if(questionHtml) question.questionHtml = questionHtml
+            if(alternatives) question.alternatives = alternatives
+            if(answer) question.answer = answer
 
-            await enem.save()
+            await question.save()
 
-            return res.status(200).json(enem)
+            return res.status(200).json(question)
 
         }catch(error: any){
             console.log("Error: " + error);
@@ -85,14 +86,14 @@ class EnemController {
     
             if(!id){
                 return res.status(400).json({
-                    error: "Sem id do ENEM para excluir"
+                    error: "Sem id da questão para excluir"
                 });
             }
     
-            await Enem.findByIdAndDelete(id)
+            await Question.findByIdAndDelete(id)
     
             return res.status(200).json({
-                message: "ENEM excluido"
+                message: "Questão excluida"
             })
         }catch(error: any){
             console.log("Error: " + error);
@@ -104,9 +105,9 @@ class EnemController {
 
     async findAll(req: any, res: any){
         try{
-            const enem = await Enem.find({})
+            const question = await Question.find({})
 
-            return res.status(200).json(enem)
+            return res.status(200).json(question)
         }catch(error: any){
             console.log("Error: " + error);
             return res.status(401).json({
@@ -116,4 +117,4 @@ class EnemController {
     }
 }
 
-export default new EnemController()
+export default new QuestionController()

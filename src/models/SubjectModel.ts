@@ -1,5 +1,4 @@
 import mongoose from "mongoose"
-import Teacher from "./teacherModel"
 
 export interface ISubject {
     name: string,
@@ -19,7 +18,7 @@ export const SubjectSchema: mongoose.Schema = new mongoose.Schema<ISubject>({
     },
     teacher_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: Teacher,
+        ref: 'Teacher',
     }
 })
 

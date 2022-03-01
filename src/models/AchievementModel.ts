@@ -10,19 +10,19 @@ export interface IAchievement {
 export const AchievementSchema: mongoose.Schema = new mongoose.Schema<IAchievement>({
     icon: {
         type: String,
-        require: true
+        required: true
     },
     name: {
         type: String,
-        require: true
+        required: true
     },
     description: {
         type: String,
-        require: true
+        required: true
     },
     experience: {
         type: Number,
-        require: true
+        required: true
     }
 })
 
