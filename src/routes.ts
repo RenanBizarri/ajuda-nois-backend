@@ -10,6 +10,9 @@ import TipController from "./controllers/TipController";
 import QuestionController from "./controllers/QuestionController";
 import QuizController from "./controllers/QuizController";
 import EnemController from "./controllers/EnemController";
+import LessonController from "./controllers/LessonController";
+import SubjectController from "./controllers/SubjectController";
+import TopicController from "./controllers/TopicController";
 
 //Common
 import Common from "./Common";
@@ -51,6 +54,24 @@ routes.post("/createEnem", auth, EnemController.create)
 routes.get("/getEnems", auth, EnemController.findAll)
 routes.put("/updateEnem", auth, EnemController.update)
 routes.delete("/deleteEnem", auth, EnemController.delete)
+
+// Rotas de Aulas
+routes.post("/createLesson", auth, LessonController.create)
+routes.get("/getLessons", auth, LessonController.findAll)
+routes.put("/updateLesson", auth, LessonController.update)
+routes.delete("/deleteLesson", auth, LessonController.delete)
+
+// Rotas de Matérias
+routes.post("/createSubject", auth, SubjectController.create)
+routes.get("/getSubjects", auth, SubjectController.findAll)
+routes.put("/updateSubject", auth, SubjectController.update)
+routes.delete("/deleteSubject", auth, SubjectController.delete)
+
+// Rotas de Tópicos
+routes.post("/createTopic", auth, TopicController.create)
+routes.get("/getTopics", auth, TopicController.findAll)
+routes.put("/updateTopic", auth, TopicController.update)
+routes.delete("/deleteTopic", auth, TopicController.delete)
 
 // Rotas de apoio
 routes.post("/uploadImage", auth, Common.uploadImage)

@@ -18,7 +18,7 @@ mongoose.connect(uri).catch(err => {
     console.log(`Erro: ${err}`)
 })
 
-app.use(express.json())
+app.use(express.json({ limit: '5mb' }))
 app.use(routes)
 
 app.listen(process.env.PORT || port, () => {

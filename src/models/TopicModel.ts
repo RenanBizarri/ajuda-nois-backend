@@ -2,10 +2,7 @@ import mongoose from "mongoose"
 
 export interface ITopic {
     name: string,
-    subject: string,
-    startTime?: string,
-    finishTime?: string,
-    isDone?: boolean
+    subject_id: mongoose.Schema.Types.ObjectId,
 }
 
 export const TopicSchema: mongoose.Schema = new mongoose.Schema<ITopic>({
@@ -13,18 +10,10 @@ export const TopicSchema: mongoose.Schema = new mongoose.Schema<ITopic>({
         type: String,
         required: true,
     },
-    subject: {
-        type: String,
+    subject_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Subject',
         required: true
-    },
-    startTime: {
-        type: String,
-    },
-    finishTime: {
-        type: String,
-    },
-    isDone: {
-        type: Boolean,
     },
 })
 

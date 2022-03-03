@@ -1,32 +1,53 @@
-import FirebaseAdmin from "firebase-admin"
-import FirebaseApp from "firebase/app"
-import Uuid from "uuid"
+import {initializeApp} from "firebase/app"
+import {getStorage, ref, uploadString, getDownloadURL} from "firebase/storage"
+import * as Uuid from "uuid"
 
-const serviceAccount = require("../ajuda-nois-firebase-adminsdk-s3hx0-4fcac83a23.json")
+async function uploadFirebase(base64: string, format: string, font: string){
+    try{
+        const firebaseConfig = {
+            apiKey: process.env.FB_API_KEY,
+            authDomain: process.env.FB_AUTH_DOMAIN,
+            projectId: process.env.FB_PROJECT_ID,
+            storageBucket: process.env.FB_STORAGE_BUCKET
+        }
 
-class Util {
+        const firebase = initializeApp(firebaseConfig)
+
+        const storage = getStorage(firebase, "gs://ajuda-nois.appspot.com/")
+
+        const filename = font + "/" + font + "_" + Uuid.v4()
+
+        const storageRef = ref(storage, filename)
+
+        await uploadString(storageRef, base64, 'base64', { contentType: format})
+
+        return getDownloadURL(storageRef)
+
+    }catch(error: any){
+        console.log("Error: " + error);
+        return error
+    }
+}
+
+class Common {
+    uploadFirebase(icon_base64: any, arg1: string, arg2: string) {
+        return uploadFirebase(icon_base64, arg1, arg2)
+    }
+
     async uploadImage(req: any, res: any){
         try{
-            const firebase = FirebaseAdmin.initializeApp({
-                credential: FirebaseAdmin.credential.cert(serviceAccount)
-            })
+            let {
+                base64,
+                font
+            } = req.body
 
-            const bucket = firebase.storage().bucket("gs://ajuda-nois.appspot.com")
+            const file = await uploadFirebase(base64, "image/jpeg" , font)
 
-            const filename = Uuid.v4()
-
-            const file = bucket.file(filename)
-            await file.save(Buffer.from(req.body.base64, 'base64'), {
-                public: true,
-                metadata: {
-                    contentType: 'image/jpeg',
-                    firebaseStorageDownloadTokens: filename
-                }  
-            })
-
+            console.log(file)
             return res.status(200).json({
-                imageUrl: file.metadata.medialink
+                imageUrl: file
             })
+
         }catch(error: any){
             console.log("Error: " + error);
             return res.status(401).json({
@@ -36,4 +57,4 @@ class Util {
     }
 }
 
-export default new Util()
+export default new Common()

@@ -1,33 +1,25 @@
-import Common from "../Common";
-import Enem from "../models/EnemModel";
-class EnemController {
+import Topic from "../models/TopicModel";
+class TopicController {
     async create(req: any, res: any){
         try{
             let {
-                year,
-                exam_base64,
-                template_base64
+                name,
+                subject_id
             } = req.body
 
             // Verifica se os campos estão preenchidos
-            if(!year || !exam_base64 || !template_base64){
+            if(!name || !subject_id){
                 return res.status(400).json({
                     error: "Campos não preenchidos."
                 });
             }
 
-            let file = await Common.uploadFirebase(exam_base64, 'application/pdf', "enem_exam")
-            const exam = file.metadata.medialink
-            file = await Common.uploadFirebase(template_base64, 'application/pdf', "enem_template")
-            const template = file.metadata.medialink
-
-            const enem = await new Enem({
-                year, 
-                exam, 
-                template
+            const topic = await new Topic({
+                name, 
+                subject_id
             }).save()
 
-            return res.status(200).json(enem)
+            return res.status(200).json(topic)
 
         }catch(error: any){
             console.log("Error: " + error);
@@ -41,46 +33,38 @@ class EnemController {
         try{
             let {
                 id,
-                year,
-                exam_base64,
-                template_base64
+                name,
+                subject_id
             } = req.body
     
             if(!id){
                 return res.status(400).json({
-                    error: "Sem id do ENEM para atualizar"
+                    error: "Sem id do Tópico para atualizar"
                 });
             }
     
             // Verifica se os campos estão preenchidos
-            if(!year && !exam_base64 && !template_base64){
+            if(!name && !subject_id){
                 return res.status(400).json({
                     error: "Nenhum campo para atualizar."
                 });
             }
 
-            let enem = await Enem.findById(id)
+            let topic = await Topic.findById(id)
 
-            if(!enem){
+            if(!topic){
                 return res.status(400).json({
-                    error: "ENEM não encontrado."
+                    error: "Tópico não encontrado."
                 });
             }
 
             let file
-            if(year) enem.year = year
-            if(exam_base64){
-                file = await Common.uploadFirebase(exam_base64, 'application/pdf', "enem_exam")
-                enem.exam = file.metadata.medialink
-            } 
-            if(template_base64){
-                file = await Common.uploadFirebase(template_base64, 'application/pdf', "enem_template")
-                enem.template = file.metadata.medialink
-            } 
+            if(name) topic.name = name
+            if(subject_id) topic.subject_id = subject_id
 
-            await enem.save()
+            await topic.save()
 
-            return res.status(200).json(enem)
+            return res.status(200).json(topic)
 
         }catch(error: any){
             console.log("Error: " + error);
@@ -98,14 +82,14 @@ class EnemController {
     
             if(!id){
                 return res.status(400).json({
-                    error: "Sem id do ENEM para excluir"
+                    error: "Sem id da matéria para excluir"
                 });
             }
     
-            await Enem.findByIdAndDelete(id)
+            await Topic.findByIdAndDelete(id)
     
             return res.status(200).json({
-                message: "ENEM excluido"
+                message: "Tópico excluido"
             })
         }catch(error: any){
             console.log("Error: " + error);
@@ -117,9 +101,9 @@ class EnemController {
 
     async findAll(req: any, res: any){
         try{
-            const enem = await Enem.find({})
+            const topic = await Topic.find({})
 
-            return res.status(200).json(enem)
+            return res.status(200).json(topic)
         }catch(error: any){
             console.log("Error: " + error);
             return res.status(401).json({
@@ -129,4 +113,4 @@ class EnemController {
     }
 }
 
-export default new EnemController()
+export default new TopicController()

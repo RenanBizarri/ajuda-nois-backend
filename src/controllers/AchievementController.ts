@@ -1,21 +1,26 @@
 import Achievement from "../models/AchievementModel";
 
+import Common from "../Common";
+
 class AchievementController {
     async create(req: any, res: any){
         try{
             let {
-                icon,
+                icon_base64,
                 name,
                 description,
                 experience
             } = req.body
 
             // Verifica se os campos estão preenchidos
-            if(!icon || !name || !description || !experience){
+            if(!icon_base64 || !name || !description || !experience){
                 return res.status(400).json({
                     error: "Preencha todos os campos."
                 });
             }
+
+            const file = await Common.uploadFirebase(icon_base64, 'image/jpeg', "achievement")
+            const icon = file.metadata.medialink
 
             const achievement = await new Achievement({
                 icon, 
@@ -38,7 +43,7 @@ class AchievementController {
         try{
             let {
                 id,
-                icon,
+                icon_base64,
                 name,
                 description,
                 experience
@@ -51,7 +56,7 @@ class AchievementController {
             }
     
             // Verifica se os campos estão preenchidos
-            if(!icon && !name && !description && !experience){
+            if(!icon_base64 && !name && !description && !experience){
                 return res.status(400).json({
                     error: "Nenhum campo para atualizar."
                 });
@@ -65,7 +70,10 @@ class AchievementController {
                 });
             }
 
-            if(icon) achievement.icon = icon
+            if(icon_base64) {
+                const file = await Common.uploadFirebase(icon_base64, 'image/jpeg', "achievement")
+                achievement.icon = file.metadata.medialink
+            }
             if(name) achievement.name = name
             if(description) achievement.description = description
             if(experience) achievement.experience = experience
