@@ -1,6 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import cors from "cors";
 
 import routes from "./routes";
 
@@ -18,6 +19,12 @@ mongoose.connect(uri).catch(err => {
     console.log(`Erro: ${err}`)
 })
 
+const allowedOrigins = ['http://localhost:3003']
+const corsOptions: cors.CorsOptions = {
+    origin: allowedOrigins
+}
+
+app.use(cors(corsOptions))
 app.use(express.json({ limit: '5mb' }))
 app.use(routes)
 
