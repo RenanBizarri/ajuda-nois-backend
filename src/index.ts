@@ -19,7 +19,7 @@ mongoose.connect(uri).catch(err => {
     console.log(`Erro: ${err}`)
 })
 
-const allowedOrigins = ['http://localhost:3003']
+const allowedOrigins = [`http://localhost:${port}`]
 const corsOptions: cors.CorsOptions = {
     origin: allowedOrigins
 }
