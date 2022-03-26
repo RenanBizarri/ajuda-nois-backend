@@ -6,7 +6,7 @@ import cors from "cors";
 import routes from "./routes";
 
 const app = express()
-const port = 3003
+const port = 3000
 
 dotenv.config()
 
