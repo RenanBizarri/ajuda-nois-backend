@@ -21,7 +21,8 @@ mongoose.connect(uri).catch(err => {
 
 const allowedOrigins = [`http://localhost:${port}`, "https://ajudanois.vercel.app/"]
 const corsOptions: cors.CorsOptions = {
-    origin: allowedOrigins
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"]
 }
 
 app.use(cors(corsOptions))
