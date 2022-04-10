@@ -2,7 +2,7 @@ import mongoose from "mongoose"
 
 export interface IQuiz {
     name: string,
-    subject_id: mongoose.Schema.Types.ObjectId,
+    topic_id: mongoose.Schema.Types.ObjectId,
     questions_ids: [mongoose.Schema.Types.ObjectId]
 }
 
@@ -11,9 +11,9 @@ export const QuizSchema: mongoose.Schema = new mongoose.Schema<IQuiz>({
         type: String,
         required: true,
     },
-    subject_id: {
+    topic_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Subject',
+        ref: 'Topic',
         required: true
     },
     questions_ids: [{

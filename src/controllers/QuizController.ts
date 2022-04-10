@@ -5,12 +5,12 @@ class QuizController {
         try{
             let {
                 name,
-                subject_id,
+                topic_id,
                 questions_ids
             } = req.body
 
             // Verifica se os campos estão preenchidos
-            if(!name || !subject_id || !questions_ids){
+            if(!name || !topic_id || !questions_ids){
                 return res.status(400).json({
                     error: "Preencha todos os campos."
                 });
@@ -18,7 +18,7 @@ class QuizController {
 
             const quiz = await new Quiz({
                 name,
-                subject_id,
+                topic_id,
                 questions_ids
             }).save()
 
@@ -37,7 +37,7 @@ class QuizController {
             let {
                 id,
                 name,
-                subject_id,
+                topic_id,
                 questions_ids
             } = req.body
     
@@ -48,7 +48,7 @@ class QuizController {
             }
     
             // Verifica se os campos estão preenchidos
-            if(!name || !subject_id || !questions_ids){
+            if(!name || !topic_id || !questions_ids){
                 return res.status(400).json({
                     error: "Preencha todos os campos."
                 });
@@ -63,7 +63,7 @@ class QuizController {
             }
 
             if(name) quiz.name = name
-            if(subject_id) quiz.subject_id = subject_id
+            if(topic_id) quiz.topic_id = topic_id
             if(questions_ids) quiz.questions_ids = questions_ids
 
             await quiz.save()

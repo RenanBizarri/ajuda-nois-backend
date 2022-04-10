@@ -13,6 +13,7 @@ import EnemController from "./controllers/EnemController";
 import LessonController from "./controllers/LessonController";
 import SubjectController from "./controllers/SubjectController";
 import TopicController from "./controllers/TopicController";
+import MockExamController from "./controllers/MockExamController";
 
 //Common
 import Common from "./Common";
@@ -23,7 +24,11 @@ const routes = express.Router();
 routes.post("/createUser", auth, UserController.createUser)
 routes.post("/createAdmin", UserController.createAdmin)
 routes.post("/login", UserController.login)
+routes.get("/getUsers", auth, UserController.getAllUsers)
 routes.delete("/deleteUser", auth, UserController.delete)
+routes.post("/recoverPassword", UserController.requestRecoverPassword)
+routes.post("/changePassword", UserController.changePassword)
+routes.get("/recoverPassword/:reset_token", UserController.verifyResetToken)
 
 // Rotas de conquistas
 routes.post("/createAchievement", auth, AchievementController.create)
@@ -72,6 +77,12 @@ routes.post("/createTopic", auth, TopicController.create)
 routes.get("/getTopics", auth, TopicController.findAll)
 routes.put("/updateTopic", auth, TopicController.update)
 routes.delete("/deleteTopic", auth, TopicController.delete)
+
+// Rotas de Simulados
+routes.post("/createMockExam", auth, MockExamController.create)
+routes.get("/getMockExams", auth, MockExamController.findAll)
+routes.put("/updateMockExam", auth, MockExamController.update)
+routes.delete("/deleteMockExam", auth, MockExamController.delete)
 
 // Rotas de apoio
 routes.post("/uploadImage", auth, Common.uploadImage)

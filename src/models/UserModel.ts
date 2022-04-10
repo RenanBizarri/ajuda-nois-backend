@@ -6,7 +6,10 @@ export interface IUser {
     username: string,
     email: string,
     password: string,
-    usertype: string
+    usertype: string,
+    activated: boolean,
+    password_reset_token?: string,
+    password_reset_expire?: number
 }
 
 export const UserSchema: mongoose.Schema = new mongoose.Schema<IUser>({
@@ -31,10 +34,21 @@ export const UserSchema: mongoose.Schema = new mongoose.Schema<IUser>({
         type: String,
         required: true,
         enum: ["admin", "student", "teacher"]
-    }
+    },
+    activated: {
+        type: Boolean,
+        required: true
+    },
+    password_reset_token: {
+        type: String
+    },
+    password_reset_expire: {
+        type: Number
+    },
 })
 
 UserSchema.pre('save', async function(next){
+    if(!this.isModified("password")) next()
     this.password = await bcrypt.hash(this.password, 10);
     next();
 })

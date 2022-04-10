@@ -1,16 +1,14 @@
 import mongoose from "mongoose"
 
-import User from "./UserModel";
-import Achievement from "./AchievementModel"
-
 export interface IStudent {
     user_id: mongoose.Schema.Types.ObjectId,
     achievements?: [{
         achievement_id: mongoose.Schema.Types.ObjectId,
-        adiquired: Date
+        date: Date
     }],
-    mockExams?: [{
-        date: Date,
+    mock_exams?: [{
+        mock_exam_id: mongoose.Schema.Types.ObjectId,
+        template: string,
         linguisticScore: number,
         mathematicScore: number,
         naturalScienceScore: number,
@@ -18,11 +16,25 @@ export interface IStudent {
         essayScore: number,
         geralScore: number
     }],
-    quizScore?: [{
+    quiz_score?: [{
         quiz_id: mongoose.Schema.Types.ObjectId,
         score: number,
         date: Date
-    }]
+    }],
+    lessons_viewed?: [{
+        lesson_id: mongoose.Schema.Types.ObjectId,
+        date: Date
+    }],
+    pomodoros?: {
+        pomodoro_per_mounth: {
+            humans_time: number,
+            languages_time: number,
+            maths_time: number,
+            natures_time: number,
+            month: number
+        },
+        year: number
+    }
 }
 
 export const StudentSchema: mongoose.Schema = new mongoose.Schema<IStudent>({
@@ -42,10 +54,14 @@ export const StudentSchema: mongoose.Schema = new mongoose.Schema<IStudent>({
             required: true
         }
     }],
-    mockExams: [{
-        date:{
-            type: Date,
+    mock_exams: [{
+        mock_exam_id:{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Mock_Exam',
             required: true
+        },
+        template: {
+            type: String
         },
         languageScore: {
             type: Number
@@ -63,7 +79,7 @@ export const StudentSchema: mongoose.Schema = new mongoose.Schema<IStudent>({
             type: Number
         }
     }],
-    quizScore: [{
+    quiz_score: [{
         quiz_id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Quiz',
@@ -77,7 +93,42 @@ export const StudentSchema: mongoose.Schema = new mongoose.Schema<IStudent>({
             type: Date,
             required: true
         }
-    }]
+    }],
+    lessons_viewed: [{
+        lesson_id:{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Lesson',
+            required: true
+        },
+        date: {
+            type: Date,
+            required: true
+        }
+    }],
+    pomodoros: {
+        pomodoro_per_mounth: {
+            humans_time: {
+                type: Number
+            },
+            languages_time: {
+                type: Number
+            },
+            maths_time: {
+                type: Number
+            },
+            natures_time: {
+                type: Number
+            },
+            month: {
+                type: Number,
+                required: true
+            }
+        },
+        year: {
+            type: Number,
+            required: true
+        }
+    }
 })
 
 const Student = mongoose.model<IStudent>("Student", StudentSchema);
