@@ -25,7 +25,7 @@ const corsOptions: cors.CorsOptions = {
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"]
 }
 
-app.use(cors(corsOptions))
+app.use(cors())
 app.use(express.json({ limit: '5mb' }))
 app.use(routes)
 
