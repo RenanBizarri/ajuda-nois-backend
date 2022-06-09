@@ -2,6 +2,7 @@ import {initializeApp} from "firebase/app"
 import {getStorage, ref, uploadString, getDownloadURL} from "firebase/storage"
 import * as Uuid from "uuid"
 import * as Mailer from "nodemailer"
+import xlsx from "xlsx";
 
 async function uploadFirebase(base64: string, format: string, font: string){
     try{
@@ -35,7 +36,19 @@ class Common {
         return uploadFirebase(icon_base64, arg1, arg2)
     }
 
-    async sendMail(to: string, mail_type: string, token: string = ""){
+    compareString(string1: string, string2: string){
+        const s1 = string1.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        const s2 = string2.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        return s1 === s2
+    }
+
+    XlsxToJson(base64: string){
+        let xlsx_data = xlsx.read(base64, {type: "base64"})
+        let sheet = xlsx_data.Sheets[xlsx_data.SheetNames[0]]
+        return xlsx.utils.sheet_to_json(sheet, {defval: ""})
+    }
+
+    async sendMail(to: string, mail_type: string, token: string = "", password: string = ""){
         let subject, message
         const url = process.env.URL_LOCAL + `changePassword/${token}`
 
@@ -49,8 +62,9 @@ class Common {
                 break;
             case "new_user":
                 subject = "Cadastro no Ajuda Nois"
-                message = `Sua conta no Ajuda Nois foi criada, para completar o cadastro
-                            entre no link para criar sua senha: <a href="${url}" > .\n`
+                message = `Sua conta no Ajuda Nois foi criada com sucesso.\n
+                           Acesse a plataforma e realize seu login: <a href="${url}" > .\n\n
+                           Sua senha na plataforma é ${password}. Recomenda-se muda-la assim que possivel.\n`
                 break;
             default:
                 break;

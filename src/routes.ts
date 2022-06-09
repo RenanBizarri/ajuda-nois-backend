@@ -14,6 +14,7 @@ import LessonController from "./controllers/LessonController";
 import SubjectController from "./controllers/SubjectController";
 import TopicController from "./controllers/TopicController";
 import MockExamController from "./controllers/MockExamController";
+import StudyPlanController from "./controllers/StudyPlanController";
 
 //Common
 import Common from "./Common";
@@ -28,7 +29,9 @@ routes.get("/getUsers", auth, UserController.getAllUsers)
 routes.delete("/deleteUser", auth, UserController.delete)
 routes.post("/recoverPassword", UserController.requestRecoverPassword)
 routes.post("/changePassword", UserController.changePassword)
-routes.get("/recoverPassword/:reset_token", UserController.verifyResetToken)
+routes.get("/changePassword/:reset_token", UserController.verifyResetToken)
+routes.post("/addPomodoro", UserController.addPomodoro)
+routes.post("/dashboard", auth, UserController.dashboard)
 
 // Rotas de conquistas
 routes.post("/createAchievement", auth, AchievementController.create)
@@ -53,6 +56,7 @@ routes.post("/createQuiz", auth, QuizController.create)
 routes.get("/getQuizes", auth, QuizController.findAll)
 routes.put("/updateQuiz", auth, QuizController.update)
 routes.delete("/deleteQuiz", auth, QuizController.delete)
+routes.post("/finishQuiz", QuizController.finishQuiz)
 
 // Rotas de Enems
 routes.post("/createEnem", auth, EnemController.create)
@@ -65,6 +69,7 @@ routes.post("/createLesson", auth, LessonController.create)
 routes.get("/getLessons", auth, LessonController.findAll)
 routes.put("/updateLesson", auth, LessonController.update)
 routes.delete("/deleteLesson", auth, LessonController.delete)
+routes.post("/lessonViewned", LessonController.lessonViewned)
 
 // Rotas de Matérias
 routes.post("/createSubject", auth, SubjectController.create)
@@ -83,6 +88,12 @@ routes.post("/createMockExam", auth, MockExamController.create)
 routes.get("/getMockExams", auth, MockExamController.findAll)
 routes.put("/updateMockExam", auth, MockExamController.update)
 routes.delete("/deleteMockExam", auth, MockExamController.delete)
+
+// Rotas do Plano de Estudo
+routes.post("/createStudyPlan", auth, StudyPlanController.create)
+routes.get("/getStudyPlans", auth, StudyPlanController.findAll)
+routes.put("/updateStudyPlan", auth, StudyPlanController.update)
+routes.delete("/deleteStudyPlan", auth, StudyPlanController.delete)
 
 // Rotas de apoio
 routes.post("/uploadImage", auth, Common.uploadImage)

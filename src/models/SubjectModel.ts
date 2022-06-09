@@ -14,7 +14,7 @@ export const SubjectSchema: mongoose.Schema = new mongoose.Schema<ISubject>({
     area: {
         type: String,
         required: true,
-        enum: ["humanScience", "language", "mathematic", "naturalScience"]
+        enum: ["humanScience", "language", "mathematic", "natureScience"]
     },
     teacher_id: {
         type: mongoose.Schema.Types.ObjectId,

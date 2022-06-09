@@ -1,4 +1,5 @@
 import Lesson from "../models/LessonModel";
+import Student from "../models/StudentModel";
 
 class LessonController {
     async create(req: any, res: any){
@@ -112,6 +113,60 @@ class LessonController {
             const lesson = await Lesson.find({})
 
             return res.status(200).json(lesson)
+        }catch(error: any){
+            console.log("Error: " + error);
+            return res.status(401).json({
+                error: error.message
+            });
+        }
+    }
+
+    async lessonViewned(req: any, res: any){
+        try{
+            const {
+                user_id,
+                lesson_id
+            } = req.body
+
+            let user = await Student.findOne({user_id})
+
+            if(user){
+                let viewedFlag: boolean = false
+
+                if(user.lessons_viewed){
+                    user.lessons_viewed.forEach(function (lesson: any) {
+                        if(lesson.lesson_id == lesson_id) viewedFlag = true
+                    })
+                }
+
+                if(viewedFlag){
+                    return res.status(200).json({
+                        message: "Aula já assistida"
+                    })
+                }else{
+                    const date: string = new Date().toISOString().substring(0, 10)
+                    const lesson_viewed = {
+                        lesson_id,
+                        date
+                    }
+
+                    if(user.lessons_viewed){
+                        user.lessons_viewed.push(lesson_viewed)
+                    }else{
+                        user.lessons_viewed = [lesson_viewed]
+                    }
+                    await user.save()
+
+                    return res.status(200).json({
+                        message: "Aula adicionada as assistidas"
+                    })
+                }
+            }else{
+                return res.status(400).json({
+                    error: "Usuario não encontrado"
+                })
+            }
+
         }catch(error: any){
             console.log("Error: " + error);
             return res.status(401).json({

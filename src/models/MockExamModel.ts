@@ -1,19 +1,26 @@
 import mongoose from "mongoose"
 
 export interface IMockExam {
-    date: Date,
-    template: string
+    date: string,
+    template: [string],
+    questions_subject: [mongoose.Schema.Types.ObjectId]
 }
 
 export const MockExamSchema: mongoose.Schema = new mongoose.Schema<IMockExam>({
     date: {
-        type: Date,
-        required: true
+        type: String,
+        required: true,
+        unique: true
     },
-    template: {
+    template: [{
         type: String,
         required: true
-    }
+    }],
+    questions_subject: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Subject',
+        required: true
+    }]
 })
 
 const Mock_Exam = mongoose.model<IMockExam>("Mock_Exam", MockExamSchema);

@@ -4,37 +4,38 @@ export interface IStudent {
     user_id: mongoose.Schema.Types.ObjectId,
     achievements?: [{
         achievement_id: mongoose.Schema.Types.ObjectId,
-        date: Date
+        date: string
     }],
     mock_exams?: [{
         mock_exam_id: mongoose.Schema.Types.ObjectId,
-        template: string,
+        template: [string],
         linguisticScore: number,
         mathematicScore: number,
         naturalScienceScore: number,
         humanScienceScore: number,
-        essayScore: number,
-        geralScore: number
     }],
     quiz_score?: [{
         quiz_id: mongoose.Schema.Types.ObjectId,
         score: number,
-        date: Date
+        date: string,
+        awnsers: [string]
     }],
     lessons_viewed?: [{
         lesson_id: mongoose.Schema.Types.ObjectId,
-        date: Date
+        date: string
     }],
-    pomodoros?: {
-        pomodoro_per_mounth: {
+    pomodoros?: [{
+        pomodoro: {
             humans_time: number,
             languages_time: number,
             maths_time: number,
             natures_time: number,
-            month: number
         },
-        year: number
-    }
+        year: number,
+        month: number
+    }],
+    experience: number,
+    level: number
 }
 
 export const StudentSchema: mongoose.Schema = new mongoose.Schema<IStudent>({
@@ -50,7 +51,7 @@ export const StudentSchema: mongoose.Schema = new mongoose.Schema<IStudent>({
             required: true
         },
         adiquired: {
-            type: Date,
+            type: String,
             required: true
         }
     }],
@@ -60,9 +61,10 @@ export const StudentSchema: mongoose.Schema = new mongoose.Schema<IStudent>({
             ref: 'Mock_Exam',
             required: true
         },
-        template: {
-            type: String
-        },
+        template: [{
+            type: String,
+            required: true
+        }],
         languageScore: {
             type: Number
         },
@@ -73,9 +75,6 @@ export const StudentSchema: mongoose.Schema = new mongoose.Schema<IStudent>({
             type: Number
         },
         humanScienceScore: {
-            type: Number
-        },
-        essayScore: {
             type: Number
         }
     }],
@@ -90,9 +89,13 @@ export const StudentSchema: mongoose.Schema = new mongoose.Schema<IStudent>({
             required: true
         },
         date: {
-            type: Date,
+            type: String,
             required: true
-        }
+        },
+        awnsers: [{
+            type: String,
+            required: true
+        }]
     }],
     lessons_viewed: [{
         lesson_id:{
@@ -101,12 +104,12 @@ export const StudentSchema: mongoose.Schema = new mongoose.Schema<IStudent>({
             required: true
         },
         date: {
-            type: Date,
+            type: String,
             required: true
         }
     }],
-    pomodoros: {
-        pomodoro_per_mounth: {
+    pomodoros: [{
+        pomodoro: {
             humans_time: {
                 type: Number
             },
@@ -118,16 +121,24 @@ export const StudentSchema: mongoose.Schema = new mongoose.Schema<IStudent>({
             },
             natures_time: {
                 type: Number
-            },
-            month: {
-                type: Number,
-                required: true
             }
         },
         year: {
             type: Number,
             required: true
+        },
+        month: {
+            type: Number,
+            required: true
         }
+    }],
+    experience: {
+        type: Number,
+        required: true
+    },
+    level: {
+        type: Number,
+        required: true
     }
 })
 

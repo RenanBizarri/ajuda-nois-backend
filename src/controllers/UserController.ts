@@ -5,11 +5,18 @@ import crypto from "crypto";
 import User from "../models/UserModel";
 import Student from "../models/StudentModel";
 import Teacher from "../models/TeacherModel";
+import MockExam from "../models/MockExamModel";
 import Common from "../Common";
+
+const lvl = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+const xp = [30, 90, 270, 650, 1400, 2300, 3400, 4800, 6400, 8500]
+const monthNames = ["January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
 
 function generateToken(params = {}){
     return jsonwebtoken.sign(params, process.env.PRIVATE_KEY!.replace(/\\n/gm, '\n') as string,{
-        expiresIn: 86400,
+        expiresIn: "30d",
         algorithm: "RS256"
     });
 }
@@ -71,14 +78,13 @@ class UserController{
             let { 
                 username,
                 email,
-                password,
                 usertype
             } = req.body;
 
             let creator_id = req.body.user_id
 
             // Verifica se os campos estão preenchidos
-            if(!username || !email || !password || !usertype){
+            if(!username || !email  || !usertype){
                 return res.status(400).json({
                     error: "Preencha todos os campos."
                 });
@@ -94,6 +100,8 @@ class UserController{
 
             const created = new Date().toISOString().substring(0, 10)
             const activated = true
+
+            const password = crypto.randomBytes(10).toString("hex")
 
             // Apenas o admin pode criar professores
             if(usertype == "teacher"){
@@ -119,6 +127,8 @@ class UserController{
                     }).save()
                 }
             }else{
+                const experience = 0, level = 1
+
                 // Cria o usuario
                 user = await new User({
                     created,
@@ -126,14 +136,18 @@ class UserController{
                     email,
                     password,
                     usertype,
-                    activated
+                    activated,
                 }).save();
 
                 // Cria o estudante
                 await new Student({
-                    user_id: user._id
+                    user_id: user._id,
+                    experience,
+                    level
                 }).save()
             }
+
+            await Common.sendMail(user.email, "new_user", "", password)
 
             return res.status(200).json(user);
         
@@ -223,8 +237,12 @@ class UserController{
             
             const user = await User.findById(user_id)
 
-            const actualYear = new Date().getFullYear()
-            const date = new Date(actualYear)
+            const date = new Date()
+            const first = date.getDate() - date.getDay()
+            const last = first + 6
+
+            const firstDay = new Date(date.setDate(first)).toISOString()
+            const lastDay = new Date(date.setDate(last)).toISOString()
 
             let response = {}
 
@@ -232,10 +250,11 @@ class UserController{
                 case "admin":
                     const allStudents = await Student.count()
                     const allTeachers = await Teacher.count()
+                    const allMockExam = await MockExam.count()
                     const newStudents = await User.aggregate([
                         {
                             $lookup: {
-                                from: "Student",
+                                from: "students",
                                 localField: "_id",
                                 foreignField: "user_id",
                                 as: "student_info"
@@ -246,7 +265,7 @@ class UserController{
                         },
                         {
                             $match: {
-                                created: date,
+                                activated: true,
                                 usertype: "student"
                             }
                         }
@@ -254,7 +273,7 @@ class UserController{
                     const newTeachers = await User.aggregate([
                         {
                             $lookup: {
-                                from: "Teacher",
+                                from: "teachers",
                                 localField: "_id",
                                 foreignField: "user_id",
                                 as: "teacher_info"
@@ -265,7 +284,7 @@ class UserController{
                         },
                         {
                             $match: {
-                                created: date,
+                                activated: true,
                                 usertype: "teacher"
                             }
                         }
@@ -274,6 +293,7 @@ class UserController{
                     response = {
                         allStudents,
                         allTeachers,
+                        allMockExam,
                         newStudents,
                         newTeachers
                     }
@@ -284,7 +304,7 @@ class UserController{
                     const teacher = await User.aggregate([
                         {
                             $lookup: {
-                                from: "Teacher",
+                                from: "teachers",
                                 localField: "_id",
                                 foreignField: "user_id",
                                 as: "teacher_info"
@@ -295,7 +315,7 @@ class UserController{
                         },
                         {
                             $lookup: {
-                                from: "Subject",
+                                from: "subjects",
                                 localField: "subjects_id",
                                 foreignField: "_id",
                                 as: "subject_info"
@@ -312,7 +332,7 @@ class UserController{
                     const students = await User.aggregate([
                         {
                             $lookup: {
-                                from: "Student",
+                                from: "students",
                                 localField: "_id",
                                 foreignField: "user_id",
                                 as: "student_info"
@@ -323,7 +343,7 @@ class UserController{
                         },
                         {
                             $lookup: {
-                                from: "Quiz",
+                                from: "quizzes",
                                 localField: "student_info.quiz_score.quiz_id",
                                 foreignField: "_id",
                                 as: "quiz_info"
@@ -331,15 +351,15 @@ class UserController{
                         },
                         {
                             $lookup: {
-                                from: "MockExam",
+                                from: "mock_exams",
                                 localField: "student_info.mock_exams.mock_exam_id",
                                 foreignField: "_id",
-                                as: "quiz_info"
+                                as: "mock_exams_info"
                             }
                         },
                         {
                             $match: {
-                                created: date,
+                                activated: true,
                                 usertype: "student"
                             }
                         }
@@ -353,6 +373,66 @@ class UserController{
                     return res.status(200).json(response)
                     break
                 case "student":
+                    const student = await User.aggregate([
+                        {
+                            $lookup: {
+                                from: "students",
+                                localField: "_id",
+                                foreignField: "user_id",
+                                as: "student_info"
+                            }
+                        },
+                        {
+                            $unwind: "$student_info"
+                        },
+                        {
+                            $lookup: {
+                                from: "quizzes",
+                                localField: "student_info.quiz_score.quiz_id",
+                                foreignField: "_id",
+                                as: "quiz_info"
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: "mock_exams",
+                                localField: "student_info.mock_exams.mock_exam_id",
+                                foreignField: "_id",
+                                as: "mock_exams_info"
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: "study_plans",
+                                let: {"_id": "$user_id"},
+                                pipeline: [{
+                                    $match: {
+                                        $expr: {
+                                            $and: [
+                                                {
+                                                    $eq: ["$_id", "$$user_id"],
+                                                    $gte: ["$$date", firstDay],
+                                                    $lit: ["$$date", lastDay]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }],
+                                as: "study_plans_info"
+                            }
+                        },
+                        {
+                            $match: {
+                                _id: user_id,
+                                usertype: "student",
+                            }
+                        }
+                    ])
+
+                    response = {
+                        student
+                    }
+
                     return res.status(200).json(response)
                     break
                 default:
@@ -394,13 +474,13 @@ class UserController{
 
         if(!user){
             return res.status(401).json({
-                message: "Token invalido"
+                error: "Token invalido"
             })
         }
 
         if(user.password_reset_expire! < Date.now()){
             return res.status(401).json({
-                message: "Token expirado"
+                error: "Token expirado"
             })
         }
 
@@ -426,7 +506,7 @@ class UserController{
         
         if(!user){ 
             return res.status(400).json({
-                message: "Nenhum usuario correspondente a esse email foi encontrado"
+                error: "Nenhum usuario correspondente a esse email foi encontrado"
             })
         }
 
@@ -484,6 +564,103 @@ class UserController{
         }
 
         return res.status(200).json(response)
+    }
+
+    async updateXp(user: any, experience: any){
+        user.experience = user.experience + experience
+
+        let i = 0;
+        while(user.experience > xp[i]){
+            i++;
+        }
+        user.level = lvl[i];
+
+        await user.save()
+
+        return
+    }
+
+    async addPomodoro(req: any, res: any){
+        const {
+            user_id,
+            time,
+            area,
+        } = req.body
+
+        const date = new Date()
+        const month = date.getMonth()
+        const year = date.getFullYear()
+
+        let user = await Student.findOne({user_id})
+
+        if(!user){
+            return res.status(400).json({
+                error: "Usuario não encontrado"
+            })
+        }
+
+        if(user.pomodoros){
+            for(let i = 0; i < user.pomodoros?.length; i++){
+                if( user.pomodoros[i].month == month &&  user.pomodoros[i].year == year){
+                    switch(area){
+                        case "humanScience": 
+                            user.pomodoros[i].pomodoro.humans_time += time
+                            break
+                        case "naturalScience": 
+                            user.pomodoros[i].pomodoro.natures_time += time
+                            break
+                        case "language": 
+                            user.pomodoros[i].pomodoro.languages_time += time
+                            break
+                        case "mathematic": 
+                            user.pomodoros[i].pomodoro.maths_time += time
+                            break
+                    }
+
+                    await user.save()
+
+                    return res.status(200).json(user)
+                }
+            }
+        }
+
+        const pomodoro = {
+            humans_time: 0,
+            natures_time: 0,
+            languages_time: 0,
+            maths_time: 0
+        }
+
+        switch(area){
+            case "humanScience": 
+                pomodoro.humans_time = time
+                break
+            case "naturalScience": 
+                pomodoro.natures_time += time
+                break
+            case "language": 
+                pomodoro.languages_time += time
+                break
+            case "mathematic": 
+                pomodoro.maths_time += time
+                break
+        }
+
+        const newPomodoro = {
+            pomodoro,
+            month,
+            year
+        }
+
+        if(user.pomodoros){
+            user.pomodoros.push(newPomodoro)
+        }else{
+            user.pomodoros = [newPomodoro]
+        }
+
+        await user.save()
+
+        return res.status(200).json(user)
     }
 }
 

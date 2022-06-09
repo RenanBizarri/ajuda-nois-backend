@@ -1,4 +1,5 @@
 import Quiz from "../models/QuizModel";
+import Student from "../models/StudentModel";
 
 class QuizController {
     async create(req: any, res: any){
@@ -108,6 +109,91 @@ class QuizController {
             const quiz = await Quiz.find({})
 
             return res.status(200).json(quiz)
+        }catch(error: any){
+            console.log("Error: " + error);
+            return res.status(401).json({
+                error: error.message
+            });
+        }
+    }
+
+    async finishQuiz(req: any, res: any){
+        try{
+            const {
+                user_id,
+                quiz_id,
+                awnsers
+            } = req.body
+
+            let user = await Student.findById(user_id)
+
+            if(user){
+                let quizFlag: boolean = false
+
+                if(user.quiz_score){
+                    user.quiz_score.forEach(function (quiz) {
+                        if(quiz.quiz_id == quiz_id) quizFlag = true
+                    })
+                }
+
+                if(quizFlag){
+                    return res.status(200).json({
+                        message: "Quiz já realizado"
+                    });
+                }else{
+                    const date: string = new Date().toISOString().substring(0, 10)
+                    let score = 0;
+                    const quiz = await Quiz.aggregate([
+                        {
+                            $lookup: {
+                                from: "questions",
+                                localField: "questions_ids",
+                                foreignField: "_id",
+                                as: "questions_info"
+                            }
+                        },
+                        {
+                            $match: {
+                                _id: quiz_id,
+                            }
+                        }
+                    ])
+
+                    if(quiz[0]){
+                        if(quiz[0].questions_info){
+                            let i = 0
+                            quiz[0].questions_info.forEach(function (question: any) {
+                                if(question.awnser === awnsers[i]) score++;
+                                i++
+                            });
+                        }
+                    }else{
+                        return res.status(401).json({
+                            error: "Quiz não encontrado"
+                        });
+                    }
+
+                    const quiz_score = {
+                        quiz_id,
+                        date,
+                        score,
+                        awnsers
+                    }
+
+                    if(user.quiz_score){
+                        user.quiz_score.push(quiz_score)
+                    }else{
+                        user.quiz_score = [quiz_score]
+                    }
+                    await user.save()
+                }
+
+            }else{
+                return res.status(401).json({
+                    error: "Usuario não encontrado"
+                });
+            }
+
         }catch(error: any){
             console.log("Error: " + error);
             return res.status(401).json({

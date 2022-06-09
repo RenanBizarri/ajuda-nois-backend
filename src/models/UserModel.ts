@@ -2,7 +2,7 @@ import mongoose from "mongoose"
 import bcrypt from "bcrypt"
 
 export interface IUser {
-    created: Date,
+    created: string,
     username: string,
     email: string,
     password: string,
@@ -14,7 +14,7 @@ export interface IUser {
 
 export const UserSchema: mongoose.Schema = new mongoose.Schema<IUser>({
     created: {
-        type: Date,
+        type: String,
         required: true
     },
     username: {

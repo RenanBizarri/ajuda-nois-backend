@@ -106,7 +106,30 @@ class SubjectController {
 
     async findAll(req: any, res: any){
         try{
-            const subject = await Subject.find({})
+            const subject = await Subject.aggregate([
+                {
+                    $lookup: {
+                        from: "teachers",
+                        localField: "teacher_id",
+                        foreignField: "_id",
+                        as: "teacher_info"
+                    }
+                },
+                {
+                    $unwind: "$teacher_info"
+                },
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "teacher_info.user_id",
+                        foreignField: "_id",
+                        as: "user_info"
+                    }
+                },
+                {
+                    $unwind: "$user_info"
+                }
+            ])
 
             return res.status(200).json(subject)
         }catch(error: any){
