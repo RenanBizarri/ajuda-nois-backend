@@ -13,7 +13,7 @@ dotenv.config()
 const user = process.env.MONGO_USER
 const pass = process.env.MONGO_PASS
 
-const uri = `mongodb+srv://${user}:${pass}@cluster0.ekd7k.mongodb.net/Ajuda_Nois?retryWrites=true&w=majority`
+const uri = `mongodb+srv://${user}:${pass}@cluster0.h98zpzi.mongodb.net/?retryWrites=true&w=majority`
 
 mongoose.connect(uri).catch(err => {
     console.log(`Erro: ${err}`)
