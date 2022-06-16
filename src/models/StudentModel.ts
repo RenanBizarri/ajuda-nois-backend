@@ -1,27 +1,27 @@
 import mongoose from "mongoose"
 
 export interface IStudent {
-    user_id: mongoose.Schema.Types.ObjectId,
+    user_id: mongoose.Types.ObjectId,
     achievements?: [{
-        achievement_id: mongoose.Schema.Types.ObjectId,
+        achievement_id: mongoose.Types.ObjectId,
         date: string
     }],
     mock_exams?: [{
-        mock_exam_id: mongoose.Schema.Types.ObjectId,
+        mock_exam_id: mongoose.Types.ObjectId,
         template: [string],
-        linguisticScore: number,
-        mathematicScore: number,
-        naturalScienceScore: number,
-        humanScienceScore: number,
+        languages_score: number,
+        mathematics_score: number,
+        natural_sciences_score: number,
+        human_sciences_score: number,
     }],
     quiz_score?: [{
-        quiz_id: mongoose.Schema.Types.ObjectId,
+        quiz_id: mongoose.Types.ObjectId,
         score: number,
         date: string,
         awnsers: [string]
     }],
     lessons_viewed?: [{
-        lesson_id: mongoose.Schema.Types.ObjectId,
+        lesson_id: mongoose.Types.ObjectId,
         date: string
     }],
     pomodoros?: [{
@@ -42,7 +42,8 @@ export const StudentSchema: mongoose.Schema = new mongoose.Schema<IStudent>({
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: true,
+        unique: true
     },
     achievements: [{
         achievement_id: {
@@ -65,16 +66,16 @@ export const StudentSchema: mongoose.Schema = new mongoose.Schema<IStudent>({
             type: String,
             required: true
         }],
-        languageScore: {
+        languages_score: {
             type: Number
         },
-        mathematicScore: {
+        mathematics_score: {
             type: Number
         },
-        naturalScienceScore: {
+        natural_sciences_score: {
             type: Number
         },
-        humanScienceScore: {
+        human_sciences_score: {
             type: Number
         }
     }],
@@ -119,7 +120,7 @@ export const StudentSchema: mongoose.Schema = new mongoose.Schema<IStudent>({
             maths_time: {
                 type: Number
             },
-            natures_time: {
+            natural_time: {
                 type: Number
             }
         },

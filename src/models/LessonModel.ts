@@ -3,18 +3,19 @@ import mongoose from "mongoose"
 export interface ILesson {
     title: string,
     content: string,
-    subject_id: mongoose.Schema.Types.ObjectId,
-    topic_id: mongoose.Schema.Types.ObjectId
+    subject_id: mongoose.Types.ObjectId,
+    topic_id: mongoose.Types.ObjectId
 }
 
 export const LessonSchema: mongoose.Schema = new mongoose.Schema<ILesson>({
     title: {
         type: String,
         required: true,
+        unique: true
     },
     content: {
         type: String,
-        required: true,
+        required: true
     },
     subject_id: {
         type: mongoose.Schema.Types.ObjectId,

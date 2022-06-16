@@ -2,7 +2,7 @@ import mongoose from "mongoose"
 
 export interface ITopic {
     name: string,
-    subject_id: mongoose.Schema.Types.ObjectId,
+    subject_id: mongoose.Types.ObjectId,
 }
 
 export const TopicSchema: mongoose.Schema = new mongoose.Schema<ITopic>({

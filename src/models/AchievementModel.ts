@@ -14,7 +14,8 @@ export const AchievementSchema: mongoose.Schema = new mongoose.Schema<IAchieveme
     },
     name: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     description: {
         type: String,

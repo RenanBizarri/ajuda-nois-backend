@@ -1,10 +1,10 @@
 import mongoose from "mongoose"
 
 export interface IStudyPlan {
-    user_id: mongoose.Schema.Types.ObjectId,
+    user_id: mongoose.Types.ObjectId,
     studies: [{
-        subject_id: mongoose.Schema.Types.ObjectId,
-        topic_id: mongoose.Schema.Types.ObjectId,
+        subject_id: mongoose.Types.ObjectId,
+        topic_id: mongoose.Types.ObjectId,
         begin: string,
         end: string,
         description?: string

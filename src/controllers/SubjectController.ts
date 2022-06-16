@@ -1,5 +1,5 @@
-import Common from "../Common";
 import Subject from "../models/SubjectModel";
+import Teacher from "../models/TeacherModel";
 class SubjectController {
     async create(req: any, res: any){
         try{
@@ -12,7 +12,7 @@ class SubjectController {
             // Verifica se os campos estão preenchidos
             if(!name || !area){
                 return res.status(400).json({
-                    error: "Campos não preenchidos."
+                    error: "Campos obrigatórios não preenchidos."
                 });
             }
 
@@ -20,7 +20,26 @@ class SubjectController {
                 name, 
                 area, 
                 teacher_id
-            }).save()
+            })
+
+            if(teacher_id){
+                let teacher = await Teacher.findById(teacher_id)
+
+                if(teacher){
+                    if(teacher.subjects_id) {
+                        teacher.subjects_id.push(subject._id)
+                    }else{
+                        teacher.subjects_id = [subject._id]
+                    }
+                    teacher.save()
+                }else{
+                    return res.status(400).json({
+                        error: "Professor não encontrado"
+                    });
+                }
+            }
+
+            subject.save()
 
             return res.status(200).json(subject)
 
@@ -62,10 +81,26 @@ class SubjectController {
                 });
             }
 
-            let file
             if(name) subject.name = name
             if(area) subject.area = area
-            if(teacher_id) subject.teacher_id = teacher_id
+            if(teacher_id){
+                let teacher = await Teacher.findById(teacher_id)
+
+                if(teacher){
+                    subject.teacher_id = teacher_id
+
+                    if(teacher.subjects_id) {
+                        teacher.subjects_id.push(subject._id)
+                    }else{
+                        teacher.subjects_id = [subject._id]
+                    }
+                    teacher.save()
+                }else{
+                    return res.status(400).json({
+                        error: "Professor não encontrado"
+                    });
+                }
+            }
 
             await subject.save()
 
@@ -108,28 +143,19 @@ class SubjectController {
         try{
             const subject = await Subject.aggregate([
                 {
-                    $lookup: {
-                        from: "teachers",
-                        localField: "teacher_id",
-                        foreignField: "_id",
-                        as: "teacher_info"
-                    }
-                },
-                {
-                    $unwind: "$teacher_info"
-                },
-                {
-                    $lookup: {
-                        from: "users",
-                        localField: "teacher_info.user_id",
-                        foreignField: "_id",
-                        as: "user_info"
-                    }
-                },
-                {
-                    $unwind: "$user_info"
+                  '$lookup': {
+                    'from': 'teachers', 
+                    'localField': 'teacher_id', 
+                    'foreignField': '_id', 
+                    'as': 'teacher_info'
+                  }
+                }, {
+                  '$unwind': {
+                    'path': '$teacher_info', 
+                    'preserveNullAndEmptyArrays': true
+                  }
                 }
-            ])
+              ])
 
             return res.status(200).json(subject)
         }catch(error: any){

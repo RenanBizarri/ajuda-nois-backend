@@ -1,21 +1,17 @@
 import mongoose from "mongoose"
 
 export interface ITeacher {
-    user_id: mongoose.Schema.Types.ObjectId,
-    tips_id?: [mongoose.Schema.Types.ObjectId],
-    subjects_id?: [mongoose.Schema.Types.ObjectId]
+    user_id: mongoose.Types.ObjectId,
+    subjects_id?: [mongoose.Types.ObjectId]
 }
 
 export const TeacherSchema: mongoose.Schema = new mongoose.Schema<ITeacher>({
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: true,
+        unique: true
     },
-    tips_id: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tip'
-    }],
     subjects_id: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Subject'

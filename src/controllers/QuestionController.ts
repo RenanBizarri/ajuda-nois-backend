@@ -17,7 +17,7 @@ class QuestionController {
             }
 
             const question = await new Question({
-                questionHtml,
+                question: questionHtml,
                 alternatives,
                 answer
             }).save()
@@ -62,7 +62,7 @@ class QuestionController {
                 });
             }
 
-            if(questionHtml) question.questionHtml = questionHtml
+            if(questionHtml) question.question = questionHtml
             if(alternatives) question.alternatives = alternatives
             if(answer) question.answer = answer
 

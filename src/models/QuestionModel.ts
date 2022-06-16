@@ -1,13 +1,13 @@
 import mongoose from "mongoose"
 
 export interface IQuestion {
-    questionHtml: string,
+    question: string,
     alternatives: [string],
     answer: string
 }
 
 export const QuestionSchema: mongoose.Schema = new mongoose.Schema<IQuestion>({
-    questionHtml: {
+    question: {
         type: String,
         required: true
     },

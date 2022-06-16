@@ -520,43 +520,47 @@ class UserController{
     async getAllUsers(req: any, res: any){
         const teachers = await User.aggregate([
             {
-                $lookup: {
-                    from: "teachers",
-                    localField: "_id",
-                    foreignField: "user_id",
-                    as: "teacher_info"
+              '$lookup': {
+                'from': 'teachers', 
+                'localField': '_id', 
+                'foreignField': 'user_id', 
+                'as': 'teacher_info'
+              }
+            }, {
+              '$unwind': {
+                'path': '$teacher_info', 
+                'preserveNullAndEmptyArrays': true
+              }
+            }, {
+              '$match': {
+                'usertype': {
+                  '$in': [
+                    'admin', 'teacher'
+                  ]
                 }
-            },
-            {
-                $unwind: "$teacher_info"
-            },
-            {
-                $match: {
-                    usertype: { 
-                        $in: ["admin", "teacher"]
-                    }
-                }
+              }
             }
-        ])
+          ])
         
         const students = await User.aggregate([
             {
-                $lookup: {
-                    from: "students",
-                    localField: "_id",
-                    foreignField: "user_id",
-                    as: "student_info"
-                }
-            },
-            {
-                $unwind: "$student_info"
-            },
-            {
-                $match: {
-                    usertype: "student"
-                }
+              '$lookup': {
+                'from': 'students', 
+                'localField': '_id', 
+                'foreignField': 'user_id', 
+                'as': 'student_info'
+              }
+            }, {
+              '$unwind': {
+                'path': '$student_info', 
+                'preserveNullAndEmptyArrays': true
+              }
+            }, {
+              '$match': {
+                'usertype': 'student'
+              }
             }
-        ])
+          ])
 
         const response = {
             teachers,

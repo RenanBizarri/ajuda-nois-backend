@@ -2,8 +2,8 @@ import mongoose from "mongoose"
 
 export interface IQuiz {
     name: string,
-    topic_id: mongoose.Schema.Types.ObjectId,
-    questions_ids: [mongoose.Schema.Types.ObjectId]
+    topic_id: mongoose.Types.ObjectId,
+    questions_ids: [mongoose.Types.ObjectId]
 }
 
 export const QuizSchema: mongoose.Schema = new mongoose.Schema<IQuiz>({

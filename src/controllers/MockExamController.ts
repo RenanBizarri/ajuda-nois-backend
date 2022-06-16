@@ -153,10 +153,10 @@ async function insertOrUpdateStudentsTemplate(base64: string, mockExam: any, sub
                     if(studentMockExam.mock_exam_id == mockExam._id){
                         mockflag = 1;
                         studentMockExam.template = student_template
-                        studentMockExam.humanScienceScore = humanScore
-                        studentMockExam.naturalScienceScore = natureScore
-                        studentMockExam.languageScore = languageScore
-                        studentMockExam.mathematicScore = mathScore
+                        studentMockExam.human_sciences_score = humanScore
+                        studentMockExam.natural_sciences_score = natureScore
+                        studentMockExam.languages_score = languageScore
+                        studentMockExam.mathematics_score = mathScore
                         break
                     }
                 }

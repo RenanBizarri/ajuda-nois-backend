@@ -3,7 +3,7 @@ import mongoose from "mongoose"
 export interface ITip {
     topic: string,
     information: string,
-    teacher_id: mongoose.Schema.Types.ObjectId 
+    teacher_id: mongoose.Types.ObjectId 
     color?: string
 }
 
