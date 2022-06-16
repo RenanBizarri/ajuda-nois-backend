@@ -50,20 +50,21 @@ class Common {
 
     async sendMail(to: string, mail_type: string, token: string = "", password: string = ""){
         let subject, message
-        const url = process.env.URL_LOCAL + `changePassword/${token}`
+        let url = process.env.URL_LOCAL 
+        if(token != "") url += `changePassword/${token}`
 
         switch (mail_type) {
             case "recover_pass":
                 subject = "Pedido de recupeação de senha"
                 message = `Um pedido para a recuperação da senha foi feita pra essa 
                             conta, para prosseguir e criar uma senha nova entre no 
-                            link: <a href="${url}"> .\n
+                            link: <a href="${url}">${url} </a>.\n
                             Caso não tenha pedido a recuperação, ignore esse email.`
                 break;
             case "new_user":
                 subject = "Cadastro no Ajuda Nois"
                 message = `Sua conta no Ajuda Nois foi criada com sucesso.\n
-                           Acesse a plataforma e realize seu login: <a href="${url}" > .\n\n
+                           Acesse a plataforma e realize seu login: <a href="${url}">${url} </a> .\n\n
                            Sua senha na plataforma é ${password}. Recomenda-se muda-la assim que possivel.\n`
                 break;
             default:
@@ -77,11 +78,14 @@ class Common {
             html: message
         }
 
+        const user = process.env.EMAIL
+        const pass = process.env.EMAIL_PASS
+
         const trasnporter = Mailer.createTransport({
             service: "gmail",
             auth: {
-                user: process.env.EMAIL,
-                pass: process.env.EMAIL_PASS,
+                user,
+                pass
             },
             port: 587,
             secure: true
@@ -91,7 +95,7 @@ class Common {
             if(error){
                 return error
             }else{
-                return "Email enviado com sucesso!"
+                return info
             }
         })
     }
