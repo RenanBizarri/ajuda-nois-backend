@@ -666,6 +666,66 @@ class UserController{
 
         return res.status(200).json(user)
     }
+
+    async updateUser(req: any, res: any){
+        try{
+            let {
+                user_id,
+                id,
+                email,
+                oldPassword,
+                newPassword,
+                activated
+            } = req.body
+    
+            if(!id){
+                return res.status(400).json({
+                    error: "Sem id da anotação para atualizar"
+                });
+            }
+    
+            // Verifica se os campos estão preenchidos
+            if(!email && !newPassword && !activated){
+                return res.status(400).json({
+                    error: "Nenhum campo para atualizar."
+                });
+            }
+
+            let user = await User.findById(id)
+            const user1 = await User.findById(user_id)
+
+            if(!user){
+                return res.status(400).json({
+                    error: "Usuario não encontrado."
+                });
+            }
+
+            if(user_id === id){
+                if(email) user.email = email
+                if(newPassword && await bcrypt.compare(oldPassword, user.password)){
+                    user.password = newPassword
+                }else{
+                    return res.status(400).json({
+                        error: "Senha antiga invalida."
+                    });
+                }
+            }
+            
+            if(user1?.usertype === "admin" && activated){
+                user.activated = activated
+            }
+
+            await user.save()
+
+            return res.status(200).json(user)
+
+        }catch(error: any){
+            console.log("Error: " + error);
+            return res.status(401).json({
+                error: error.message
+            });
+        }
+    }
 }
 
 export default new UserController()

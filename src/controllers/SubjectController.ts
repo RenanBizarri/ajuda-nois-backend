@@ -16,7 +16,7 @@ class SubjectController {
                 });
             }
 
-            const subject = await new Subject({
+            const subject = new Subject({
                 name, 
                 area, 
                 teacher_id
@@ -31,7 +31,7 @@ class SubjectController {
                     }else{
                         teacher.subjects_id = [subject._id]
                     }
-                    teacher.save()
+                    await teacher.save()
                 }else{
                     return res.status(400).json({
                         error: "Professor não encontrado"
@@ -39,7 +39,7 @@ class SubjectController {
                 }
             }
 
-            subject.save()
+            await subject.save()
 
             return res.status(200).json(subject)
 
@@ -149,12 +149,26 @@ class SubjectController {
                     'foreignField': '_id', 
                     'as': 'teacher_info'
                   }
-                }, {
+                }, 
+                {
                   '$unwind': {
                     'path': '$teacher_info', 
                     'preserveNullAndEmptyArrays': true
                   }
-                }
+                },
+                {
+                    '$lookup': {
+                      'from': 'users', 
+                      'localField': 'teacher_info.user_id', 
+                      'foreignField': '_id', 
+                      'as': 'user_info'
+                    }
+                  }, {
+                    '$unwind': {
+                      'path': '$user_info', 
+                      'preserveNullAndEmptyArrays': true
+                    }
+                  }
               ])
 
             return res.status(200).json(subject)
