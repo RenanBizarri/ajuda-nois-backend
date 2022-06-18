@@ -20,7 +20,7 @@ class AchievementController {
             }
 
             const file = await Common.uploadFirebase(icon_base64, 'image/jpeg', "achievement")
-            const icon = file.metadata.medialink
+            const icon = file
 
             const achievement = await new Achievement({
                 icon, 
@@ -72,7 +72,7 @@ class AchievementController {
 
             if(icon_base64) {
                 const file = await Common.uploadFirebase(icon_base64, 'image/jpeg', "achievement")
-                achievement.icon = file.metadata.medialink
+                achievement.icon = file
             }
             if(name) achievement.name = name
             if(description) achievement.description = description

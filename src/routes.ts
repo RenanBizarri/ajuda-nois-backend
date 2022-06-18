@@ -30,7 +30,7 @@ routes.delete("/deleteUser", auth, UserController.delete)
 routes.post("/recoverPassword", UserController.requestRecoverPassword)
 routes.post("/changePassword", UserController.changePassword)
 routes.get("/changePassword/:reset_token", UserController.verifyResetToken)
-routes.post("/addPomodoro", UserController.addPomodoro)
+routes.post("/addPomodoro", auth, UserController.addPomodoro)
 routes.post("/dashboard", auth, UserController.dashboard)
 routes.post("/updateUser", auth, UserController.updateUser)
 

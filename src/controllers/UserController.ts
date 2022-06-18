@@ -467,16 +467,16 @@ class UserController{
             for(let i = 0; i < user.pomodoros?.length; i++){
                 if( user.pomodoros[i].month == month &&  user.pomodoros[i].year == year){
                     switch(area){
-                        case "humanScience": 
+                        case "human_sciences": 
                             user.pomodoros[i].pomodoro.humans_time += time
                             break
-                        case "naturalScience": 
-                            user.pomodoros[i].pomodoro.natures_time += time
+                        case "natural_sciences": 
+                            user.pomodoros[i].pomodoro.natural_time += time
                             break
-                        case "language": 
+                        case "languages": 
                             user.pomodoros[i].pomodoro.languages_time += time
                             break
-                        case "mathematic": 
+                        case "mathematics": 
                             user.pomodoros[i].pomodoro.maths_time += time
                             break
                     }
@@ -490,22 +490,22 @@ class UserController{
 
         const pomodoro = {
             humans_time: 0,
-            natures_time: 0,
+            natural_time: 0,
             languages_time: 0,
             maths_time: 0
         }
 
         switch(area){
-            case "humanScience": 
+            case "human_sciences": 
                 pomodoro.humans_time = time
                 break
-            case "naturalScience": 
-                pomodoro.natures_time += time
+            case "natural_sciences": 
+                pomodoro.natural_time += time
                 break
-            case "language": 
+            case "languages": 
                 pomodoro.languages_time += time
                 break
-            case "mathematic": 
+            case "mathematics": 
                 pomodoro.maths_time += time
                 break
         }

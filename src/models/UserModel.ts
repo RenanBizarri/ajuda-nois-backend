@@ -37,7 +37,7 @@ export interface IUser {
             humans_time: number,
             languages_time: number,
             maths_time: number,
-            natures_time: number,
+            natural_time: number,
         },
         year: number,
         month: number
