@@ -74,26 +74,11 @@ async function insertOrUpdateStudentsTemplate(base64: string, mockExam: any, sub
         students_email.push(row.Emails)
     } 
 
-    const students = await User.aggregate([
-        {
-            $lookup: {
-                from: "students",
-                localField: "_id",
-                foreignField: "user_id",
-                as: "student_info"
-            }
-        },
-        {
-            $unwind: "$student_info"
-        },
-        {
-            $match: {
+    const students = await User.find({
                 activated: true,
                 usertype: "student",
                 email: {$in: students_email}
-            }
-        }
-    ])
+            })
 
     const possibleAnwsers = ["", "a", "b", "c", "d", "e", "A", "B", "C", "D", "E"]
     const template = mockExam.template
@@ -101,7 +86,7 @@ async function insertOrUpdateStudentsTemplate(base64: string, mockExam: any, sub
 
     for(let i = 0; i < sheet_data.length; i++){
         const row: any = sheet_data[i]
-        let student_template = [], humanScore = 0, natureScore = 0, mathScore = 0, languageScore = 0
+        let student_template: string[] = [], humanScore = 0, natureScore = 0, mathScore = 0, languageScore = 0
         for(let question in row){
             const questionNumber = Number(question)
             if(question != 'Emails' && questionNumber > 0 && questionNumber < 186) {
@@ -148,29 +133,40 @@ async function insertOrUpdateStudentsTemplate(base64: string, mockExam: any, sub
         for(let student of students){
             if(student.email == row.Emails){
                 studentFlag = 1
-                let mockflag = 0
-                for(let studentMockExam of student.student_info.mock_exams){
-                    if(studentMockExam.mock_exam_id == mockExam._id){
-                        mockflag = 1;
-                        studentMockExam.template = student_template
-                        studentMockExam.human_sciences_score = humanScore
-                        studentMockExam.natural_sciences_score = natureScore
-                        studentMockExam.languages_score = languageScore
-                        studentMockExam.mathematics_score = mathScore
-                        break
+                if(student.mock_exams){
+                    let mockflag = 0
+                    for(let studentMockExam of student.mock_exams){
+                        if(studentMockExam.mock_exam_id == mockExam._id){
+                            mockflag = 1;
+                            studentMockExam.template = student_template
+                            studentMockExam.human_sciences_score = humanScore
+                            studentMockExam.natural_sciences_score = natureScore
+                            studentMockExam.languages_score = languageScore
+                            studentMockExam.mathematics_score = mathScore
+                            break
+                        }
                     }
-                }
-                if(mockflag == 0){
-                    student.student_info.mock_exams.push({
+                    if(mockflag == 0){
+                        student.mock_exams.push({
+                            mock_exam_id: mockExam._id,
+                            template: student_template,
+                            human_sciences_score: humanScore,
+                            natural_sciences_score: natureScore,
+                            languages_score: languageScore,
+                            mathematics_score: mathScore
+                        })
+                    }
+                }else{
+                    student.mock_exams = [{
                         mock_exam_id: mockExam._id,
                         template: student_template,
-                        humanScienceScore: humanScore,
-                        naturalScienceScore: natureScore,
-                        languageScore: languageScore,
-                        mathematicScore: mathScore
-                    })
+                        human_sciences_score: humanScore,
+                        natural_sciences_score: natureScore,
+                        languages_score: languageScore,
+                        mathematics_score: mathScore
+                    }]
                 }
-                student.save()
+                await student.save()
                 break
             }
         }

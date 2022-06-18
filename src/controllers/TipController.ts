@@ -6,12 +6,12 @@ class TipController {
             let {
                 topic,
                 information,
-                teacher_id,
+                user_id,
                 color
             } = req.body
 
             // Verifica se os campos estão preenchidos
-            if(!topic || !information || !teacher_id){
+            if(!topic || !information || !user_id){
                 return res.status(400).json({
                     error: "Campos não preenchidos."
                 });
@@ -20,7 +20,7 @@ class TipController {
             const tip = await new Tip({
                 topic, 
                 information, 
-                teacher_id, 
+                user_id, 
                 color
             }).save()
 

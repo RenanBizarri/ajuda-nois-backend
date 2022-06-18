@@ -3,7 +3,7 @@ import mongoose from "mongoose"
 export interface ISubject {
     name: string,
     area: string,
-    teacher_id?: mongoose.Types.ObjectId
+    user_id?: mongoose.Types.ObjectId
 }
 
 export const SubjectSchema: mongoose.Schema = new mongoose.Schema<ISubject>({
@@ -17,9 +17,9 @@ export const SubjectSchema: mongoose.Schema = new mongoose.Schema<ISubject>({
         required: true,
         enum: ["human_sciences", "languages", "mathematics", "natural_sciences"]
     },
-    teacher_id: {
+    user_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Teacher'
+        ref: 'User'
     }
 })
 

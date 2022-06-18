@@ -1,12 +1,11 @@
 import Subject from "../models/SubjectModel";
-import Teacher from "../models/TeacherModel";
 class SubjectController {
     async create(req: any, res: any){
         try{
             let {
                 name,
                 area,
-                teacher_id
+                user_id
             } = req.body
 
             // Verifica se os campos estão preenchidos
@@ -19,25 +18,8 @@ class SubjectController {
             const subject = new Subject({
                 name, 
                 area, 
-                teacher_id
+                user_id
             })
-
-            if(teacher_id){
-                let teacher = await Teacher.findById(teacher_id)
-
-                if(teacher){
-                    if(teacher.subjects_id) {
-                        teacher.subjects_id.push(subject._id)
-                    }else{
-                        teacher.subjects_id = [subject._id]
-                    }
-                    await teacher.save()
-                }else{
-                    return res.status(400).json({
-                        error: "Professor não encontrado"
-                    });
-                }
-            }
 
             await subject.save()
 
@@ -57,7 +39,7 @@ class SubjectController {
                 id,
                 name,
                 area,
-                teacher_id
+                user_id
             } = req.body
     
             if(!id){
@@ -67,7 +49,7 @@ class SubjectController {
             }
     
             // Verifica se os campos estão preenchidos
-            if(!name && !area && !teacher_id){
+            if(!name && !area && !user_id){
                 return res.status(400).json({
                     error: "Nenhum campo para atualizar."
                 });
@@ -83,23 +65,8 @@ class SubjectController {
 
             if(name) subject.name = name
             if(area) subject.area = area
-            if(teacher_id){
-                let teacher = await Teacher.findById(teacher_id)
-
-                if(teacher){
-                    subject.teacher_id = teacher_id
-
-                    if(teacher.subjects_id) {
-                        teacher.subjects_id.push(subject._id)
-                    }else{
-                        teacher.subjects_id = [subject._id]
-                    }
-                    teacher.save()
-                }else{
-                    return res.status(400).json({
-                        error: "Professor não encontrado"
-                    });
-                }
+            if(user_id) {
+                subject.user_id = user_id
             }
 
             await subject.save()
@@ -144,31 +111,18 @@ class SubjectController {
             const subject = await Subject.aggregate([
                 {
                   '$lookup': {
-                    'from': 'teachers', 
-                    'localField': 'teacher_id', 
+                    'from': 'users', 
+                    'localField': 'user_id', 
                     'foreignField': '_id', 
-                    'as': 'teacher_info'
+                    'as': 'user_info'
                   }
                 }, 
                 {
                   '$unwind': {
-                    'path': '$teacher_info', 
+                    'path': '$user_info', 
                     'preserveNullAndEmptyArrays': true
                   }
-                },
-                {
-                    '$lookup': {
-                      'from': 'users', 
-                      'localField': 'teacher_info.user_id', 
-                      'foreignField': '_id', 
-                      'as': 'user_info'
-                    }
-                  }, {
-                    '$unwind': {
-                      'path': '$user_info', 
-                      'preserveNullAndEmptyArrays': true
-                    }
-                  }
+                }
               ])
 
             return res.status(200).json(subject)

@@ -1,5 +1,5 @@
 import Quiz from "../models/QuizModel";
-import Student from "../models/StudentModel";
+import User from "../models/UserModel";
 
 class QuizController {
     async create(req: any, res: any){
@@ -125,7 +125,7 @@ class QuizController {
                 awnsers
             } = req.body
 
-            let user = await Student.findById(user_id)
+            let user = await User.findById(user_id)
 
             if(user){
                 let quizFlag: boolean = false

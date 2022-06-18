@@ -3,16 +3,14 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 
 import User from "../models/UserModel";
-import Student from "../models/StudentModel";
-import Teacher from "../models/TeacherModel";
 import MockExam from "../models/MockExamModel";
 import Common from "../Common";
+import Subject from "../models/SubjectModel";
 
 const lvl = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 const xp = [30, 90, 270, 650, 1400, 2300, 3400, 4800, 6400, 8500]
 const monthNames = ["January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
+  "July", "August", "September", "October", "November", "December"];
 
 function generateToken(params = {}){
     return jsonwebtoken.sign(params, process.env.PRIVATE_KEY!.replace(/\\n/gm, '\n') as string,{
@@ -59,10 +57,6 @@ class UserController{
                 usertype,
                 activated
             }).save();
-
-            await new Teacher({
-                user_id: user._id
-            }).save()
 
             return res.status(200).json(user)
         }catch(error: any){
@@ -121,10 +115,6 @@ class UserController{
                         usertype,
                         activated
                     }).save();
-
-                    await new Teacher({
-                        user_id: user._id
-                    }).save()
                 }
             }else{
                 const experience = 0, level = 1
@@ -137,14 +127,9 @@ class UserController{
                     password,
                     usertype,
                     activated,
-                }).save();
-
-                // Cria o estudante
-                await new Student({
-                    user_id: user._id,
                     experience,
                     level
-                }).save()
+                }).save();
             }
 
             await Common.sendMail(user.email, "new_user", "", password)
@@ -198,13 +183,11 @@ class UserController{
                     break
                 case "student":
                     await User.findByIdAndDelete(id)
-                    await Student.deleteOne({user_id: id})
                     break
                 case "teacher":
                     const deleter_user = await User.findById(req.body.user_id)
                     if(deleter_user?.usertype == "admin"){
                         await User.findByIdAndDelete(id)
-                        await Teacher.deleteOne({user_id: id})
                     }else{
                         return res.status(401).json({
                             message: "Somente o admin pode excluir professores"
@@ -248,47 +231,11 @@ class UserController{
 
             switch(user?.usertype){
                 case "admin":
-                    const allStudents = await Student.count()
-                    const allTeachers = await Teacher.count()
+                    const allStudents = await User.count({usertype: "student"})
+                    const allTeachers = await User.count({usertype: {$in: ["admin", "teacher"]}})
                     const allMockExam = await MockExam.count()
-                    const newStudents = await User.aggregate([
-                        {
-                            $lookup: {
-                                from: "students",
-                                localField: "_id",
-                                foreignField: "user_id",
-                                as: "student_info"
-                            }
-                        },
-                        {
-                            $unwind: "$student_info"
-                        },
-                        {
-                            $match: {
-                                activated: true,
-                                usertype: "student"
-                            }
-                        }
-                    ])
-                    const newTeachers = await User.aggregate([
-                        {
-                            $lookup: {
-                                from: "teachers",
-                                localField: "_id",
-                                foreignField: "user_id",
-                                as: "teacher_info"
-                            }
-                        },
-                        {
-                            $unwind: "$teacher_info"
-                        },
-                        {
-                            $match: {
-                                activated: true,
-                                usertype: "teacher"
-                            }
-                        }
-                    ])
+                    const newStudents = await User.find({usertype: "student", activated: true})
+                    const newTeachers = await User.find({usertype: {$in: ["admin", "teacher"]}, activated: true})
 
                     response = {
                         allStudents,
@@ -301,50 +248,13 @@ class UserController{
                     return res.status(200).json(response)
                     break
                 case "teacher":
-                    const teacher = await User.aggregate([
-                        {
-                            $lookup: {
-                                from: "teachers",
-                                localField: "_id",
-                                foreignField: "user_id",
-                                as: "teacher_info"
-                            }
-                        },
-                        {
-                            $unwind: "$teacher_info"
-                        },
-                        {
-                            $lookup: {
-                                from: "subjects",
-                                localField: "subjects_id",
-                                foreignField: "_id",
-                                as: "subject_info"
-                            }
-                        },
-                        {
-                            $match: {
-                                _id: user_id,
-                                usertype: "teacher"
-                            }
-                        }
-                    ])
+                    const subject = await Subject.find({user_id})
                     
                     const students = await User.aggregate([
                         {
                             $lookup: {
-                                from: "students",
-                                localField: "_id",
-                                foreignField: "user_id",
-                                as: "student_info"
-                            }
-                        },
-                        {
-                            $unwind: "$student_info"
-                        },
-                        {
-                            $lookup: {
                                 from: "quizzes",
-                                localField: "student_info.quiz_score.quiz_id",
+                                localField: "quiz_score.quiz_id",
                                 foreignField: "_id",
                                 as: "quiz_info"
                             }
@@ -352,7 +262,7 @@ class UserController{
                         {
                             $lookup: {
                                 from: "mock_exams",
-                                localField: "student_info.mock_exams.mock_exam_id",
+                                localField: "mock_exams.mock_exam_id",
                                 foreignField: "_id",
                                 as: "mock_exams_info"
                             }
@@ -366,7 +276,8 @@ class UserController{
                     ])
 
                     response = {
-                        teacher,
+                        user,
+                        subject,
                         students
                     }
 
@@ -376,19 +287,8 @@ class UserController{
                     const student = await User.aggregate([
                         {
                             $lookup: {
-                                from: "students",
-                                localField: "_id",
-                                foreignField: "user_id",
-                                as: "student_info"
-                            }
-                        },
-                        {
-                            $unwind: "$student_info"
-                        },
-                        {
-                            $lookup: {
                                 from: "quizzes",
-                                localField: "student_info.quiz_score.quiz_id",
+                                localField: "quiz_score.quiz_id",
                                 foreignField: "_id",
                                 as: "quiz_info"
                             }
@@ -396,7 +296,7 @@ class UserController{
                         {
                             $lookup: {
                                 from: "mock_exams",
-                                localField: "student_info.mock_exams.mock_exam_id",
+                                localField: "mock_exams.mock_exam_id",
                                 foreignField: "_id",
                                 as: "mock_exams_info"
                             }
@@ -468,7 +368,7 @@ class UserController{
     }
 
     async verifyResetToken(req: any, res: any){
-        let { reset_token } = req.params.reset_token
+        let reset_token = req.params.reset_token
 
         const user = await User.findOne({password_reset_token: reset_token})
 
@@ -518,49 +418,9 @@ class UserController{
     }
 
     async getAllUsers(req: any, res: any){
-        const teachers = await User.aggregate([
-            {
-              '$lookup': {
-                'from': 'teachers', 
-                'localField': '_id', 
-                'foreignField': 'user_id', 
-                'as': 'teacher_info'
-              }
-            }, {
-              '$unwind': {
-                'path': '$teacher_info', 
-                'preserveNullAndEmptyArrays': true
-              }
-            }, {
-              '$match': {
-                'usertype': {
-                  '$in': [
-                    'admin', 'teacher'
-                  ]
-                }
-              }
-            }
-          ])
+        const teachers = await User.find({usertype: {$in: ["admin", "teacher"]}})
         
-        const students = await User.aggregate([
-            {
-              '$lookup': {
-                'from': 'students', 
-                'localField': '_id', 
-                'foreignField': 'user_id', 
-                'as': 'student_info'
-              }
-            }, {
-              '$unwind': {
-                'path': '$student_info', 
-                'preserveNullAndEmptyArrays': true
-              }
-            }, {
-              '$match': {
-                'usertype': 'student'
-              }
-            }
-          ])
+        const students = await User.find({usertype: "student"})
 
         const response = {
             teachers,
@@ -595,7 +455,7 @@ class UserController{
         const month = date.getMonth()
         const year = date.getFullYear()
 
-        let user = await Student.findOne({user_id})
+        let user = await User.findById(user_id)
 
         if(!user){
             return res.status(400).json({

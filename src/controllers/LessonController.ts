@@ -1,5 +1,5 @@
 import Lesson from "../models/LessonModel";
-import Student from "../models/StudentModel";
+import User from "../models/UserModel";
 
 class LessonController {
     async create(req: any, res: any){
@@ -128,7 +128,7 @@ class LessonController {
                 lesson_id
             } = req.body
 
-            let user = await Student.findOne({user_id})
+            let user = await User.findById(user_id)
 
             if(user){
                 let viewedFlag: boolean = false

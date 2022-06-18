@@ -3,7 +3,7 @@ import mongoose from "mongoose"
 export interface ITip {
     topic: string,
     information: string,
-    teacher_id: mongoose.Types.ObjectId 
+    user_id: mongoose.Types.ObjectId 
     color?: string
 }
 
@@ -16,9 +16,9 @@ export const TipSchema: mongoose.Schema = new mongoose.Schema<ITip>({
         type: String,
         required: true
     },
-    teacher_id: {
+    user_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Teacher',
+        ref: 'User',
         required: true
     },
     color: {
