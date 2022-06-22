@@ -566,12 +566,14 @@ class UserController{
             if(user_id === id){
                 if(username) user.username = username
                 if(email) user.email = email
-                if(newPassword && await bcrypt.compare(oldPassword, user.password)){
-                    user.password = newPassword
-                }else{
-                    return res.status(400).json({
-                        error: "Senha antiga invalida."
-                    });
+                if(newPassword){
+                    if(await bcrypt.compare(oldPassword, user.password)){
+                        user.password = newPassword
+                    }else{
+                        return res.status(400).json({
+                            error: "Senha antiga invalida."
+                        });
+                    }
                 }
             }
             
