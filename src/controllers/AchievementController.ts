@@ -1,6 +1,7 @@
 import Achievement from "../models/AchievementModel";
 
 import Common from "../Common";
+import User from "../models/UserModel";
 
 class AchievementController {
     async create(req: any, res: any){
@@ -9,24 +10,29 @@ class AchievementController {
                 icon_base64,
                 name,
                 description,
-                experience
+                experience,
+                type,
+                quantity,
+                area
             } = req.body
 
             // Verifica se os campos estão preenchidos
-            if(!icon_base64 || !name || !description || !experience){
+            if(!icon_base64 || !name || !description || !experience || !type || !quantity || !area){
                 return res.status(400).json({
                     error: "Preencha todos os campos."
                 });
             }
 
-            const file = await Common.uploadFirebase(icon_base64, 'image/jpeg', "achievement")
-            const icon = file
+            const icon = await Common.uploadFirebase(icon_base64, 'image/jpeg', "achievement")
 
             const achievement = await new Achievement({
                 icon, 
                 name, 
                 description, 
-                experience
+                experience,
+                type,
+                quantity,
+                area
             }).save()
 
             return res.status(200).json(achievement)
@@ -46,7 +52,9 @@ class AchievementController {
                 icon_base64,
                 name,
                 description,
-                experience
+                experience,
+                quantity,
+                area
             } = req.body
     
             if(!id){
@@ -56,7 +64,7 @@ class AchievementController {
             }
     
             // Verifica se os campos estão preenchidos
-            if(!icon_base64 && !name && !description && !experience){
+            if(!icon_base64 && !name && !description && !experience && !quantity && !area){
                 return res.status(400).json({
                     error: "Nenhum campo para atualizar."
                 });
@@ -71,12 +79,13 @@ class AchievementController {
             }
 
             if(icon_base64) {
-                const file = await Common.uploadFirebase(icon_base64, 'image/jpeg', "achievement")
-                achievement.icon = file
+                achievement.icon = await Common.uploadFirebase(icon_base64, 'image/jpeg', "achievement")
             }
             if(name) achievement.name = name
             if(description) achievement.description = description
             if(experience) achievement.experience = experience
+            if(quantity) achievement.quantity = quantity
+            if(area) achievement.area = area
 
             await achievement.save()
 
@@ -117,9 +126,12 @@ class AchievementController {
 
     async findAll(req: any, res: any){
         try{
+            const user_id = req.body.user_id
+
+            const user = await User.findById(user_id);
             const achievement = await Achievement.find({})
 
-            return res.status(200).json(achievement)
+            return res.status(200).json({user, achievement})
         }catch(error: any){
             console.log("Error: " + error);
             return res.status(401).json({

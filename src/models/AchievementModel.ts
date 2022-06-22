@@ -5,6 +5,9 @@ export interface IAchievement {
     name: String, 
     description: String,
     experience: number,
+    type: String,
+    quantity: number,
+    area: String
 }
 
 export const AchievementSchema: mongoose.Schema = new mongoose.Schema<IAchievement>({
@@ -24,7 +27,21 @@ export const AchievementSchema: mongoose.Schema = new mongoose.Schema<IAchieveme
     experience: {
         type: Number,
         required: true
-    }
+    },
+    type: {
+        type: String,
+        required: true,
+        enum: ["pomodoro_time", "level", "quiz_completed", "topics_completed", "mock_exam_made", "mock_exam_score"]
+    },
+    quantity: {
+        type: Number,
+        required: true
+    },
+    area: {
+        type: String,
+        required: true,
+        enum: ["general", "human_sciences", "languages", "mathematics", "natural_sciences"]
+    },
 })
 
 const Achievement = mongoose.model<IAchievement>("Achievement", AchievementSchema);
