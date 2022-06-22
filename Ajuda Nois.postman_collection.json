@@ -54,7 +54,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjJhYmE5ZjcyMjUxNTI2NzQwNWIxY2IzIiwiaWF0IjoxNjU1NDIxMDE2LCJleHAiOjE2NTgwMTMwMTZ9.X-Zul4ZLKGk2pDesEH_De9vEMgZosfNLY8MSWn4wSWTM-OUoH0BFltov6ViR1aGKWGxh_OuM-_Hdpiv4S_c_f-XJugqHQVvsdERUa4wUZshbBiEjPdi8D0umJlzrW-ofUe91Ongv0FC40jkuXviUtEdYXjSWyOkDaSjJYjgJ4vY",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjJhZTJkNmZhYmU4MmYwZGQ1MjRjYzI1IiwiaWF0IjoxNjU1OTMyMzA3LCJleHAiOjE2NTg1MjQzMDd9.knOSMGdTZXS5ZoaqKbZKDaWV3MyKflBu_t6bF3JNL4AR6i76Q874U_ZmGNSOTiaRhTFZ7M9E6vpI0SP-kM0Ih_RkvwrKKx7q38AbYQxYK-0t_ICAzSsunnOQuEMUauGTR7l8Uc6KKjD46BgyxLeqTcmAM257i4-b1iWXUtO1Bmo",
 									"type": "string"
 								}
 							]
@@ -316,7 +316,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"renanbizarri@hotmail.com\",\n    \"password\": \"acabaLogo\"\n}",
+							"raw": "{\n    \"email\": \"renan31bizarri@gmail.com\",\n    \"password\": \"123456\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
