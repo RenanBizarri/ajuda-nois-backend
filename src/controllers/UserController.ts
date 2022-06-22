@@ -532,6 +532,7 @@ class UserController{
             let {
                 user_id,
                 id,
+                username,
                 email,
                 oldPassword,
                 newPassword,
@@ -540,12 +541,14 @@ class UserController{
     
             if(!id){
                 return res.status(400).json({
-                    error: "Sem id da anotação para atualizar"
+                    error: "Sem id do usuario para atualizar"
                 });
             }
+
+            const isSameUser = user_id === id
     
             // Verifica se os campos estão preenchidos
-            if(!email && !newPassword && !activated){
+            if((!username && !email && !newPassword && isSameUser) || (!activated && !isSameUser)){
                 return res.status(400).json({
                     error: "Nenhum campo para atualizar."
                 });
@@ -561,6 +564,7 @@ class UserController{
             }
 
             if(user_id === id){
+                if(username) user.username = username
                 if(email) user.email = email
                 if(newPassword && await bcrypt.compare(oldPassword, user.password)){
                     user.password = newPassword
