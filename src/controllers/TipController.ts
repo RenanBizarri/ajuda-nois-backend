@@ -4,24 +4,22 @@ class TipController {
     async create(req: any, res: any){
         try{
             let {
-                topic,
+                name,
                 information,
-                user_id,
-                color
+                user_id
             } = req.body
 
             // Verifica se os campos estão preenchidos
-            if(!topic || !information || !user_id){
+            if(!name || !information || !user_id){
                 return res.status(400).json({
                     error: "Campos não preenchidos."
                 });
             }
 
             const tip = await new Tip({
-                topic, 
+                name, 
                 information, 
-                user_id, 
-                color
+                user_id
             }).save()
 
             return res.status(200).json(tip)
@@ -38,9 +36,8 @@ class TipController {
         try{
             let {
                 id,
-                topic,
-                information,
-                color
+                name,
+                information
             } = req.body
     
             if(!id){
@@ -50,7 +47,7 @@ class TipController {
             }
     
             // Verifica se os campos estão preenchidos
-            if(!topic && !information && !color){
+            if(!name && !information){
                 return res.status(400).json({
                     error: "Nenhum campo para atualizar."
                 });
@@ -64,9 +61,8 @@ class TipController {
                 });
             }
 
-            if(topic) tip.topic = topic
+            if(name) tip.name = name
             if(information) tip.information = information
-            if(color) tip.color = color
 
             await tip.save()
 
@@ -107,9 +103,23 @@ class TipController {
 
     async findAll(req: any, res: any){
         try{
-            const tip = await Tip.find({})
+            const tips = await Tip.find({})
 
-            return res.status(200).json(tip)
+            return res.status(200).json(tips)
+        }catch(error: any){
+            console.log("Error: " + error);
+            return res.status(401).json({
+                error: error.message
+            });
+        }
+    }
+
+    async findByUser(req: any, res:any){
+        try{
+            const user_id = req.body.user_id
+            const tips = await Tip.find({user_id})
+
+            return res.status(200).json(tips)
         }catch(error: any){
             console.log("Error: " + error);
             return res.status(401).json({

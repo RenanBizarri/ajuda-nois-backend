@@ -111,6 +111,60 @@ class TopicController {
             });
         }
     }
+
+    async findBySubject(req: any, res: any){
+        try{
+            const {
+                subject_id
+            } = req.body
+            const topic = await Topic.find({subject_id})
+
+            return res.status(200).json(topic)
+        }catch(error: any){
+            console.log("Error: " + error);
+            return res.status(401).json({
+                error: error.message
+            });
+        }
+    }
+
+    async getLessonsAndQuizzes(req: any, res: any){
+        try{
+            const {
+                id
+            } = req.body
+            const topic = await Topic.aggregate([
+                {
+                    $lookup: {
+                        from: "lessons",
+                        localField: "_id",
+                        foreignField: "topic_id",
+                        as: "lessons"
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "quizzes",
+                        localField: "_id",
+                        foreignField: "topic_id",
+                        as: "quizzes"
+                    }
+                },
+                {
+                    $match: {
+                        _id: id,
+                    }
+                }
+            ])
+
+            return res.status(200).json(topic)
+        }catch(error: any){
+            console.log("Error: " + error);
+            return res.status(401).json({
+                error: error.message
+            });
+        }
+    }
 }
 
 export default new TopicController()

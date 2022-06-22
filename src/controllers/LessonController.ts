@@ -7,12 +7,11 @@ class LessonController {
             let {
                 title,
                 content,
-                subject_id,
                 topic_id
             } = req.body
 
             // Verifica se os campos estão preenchidos
-            if(!title || !content || !subject_id || !topic_id){
+            if(!title || !content  || !topic_id){
                 return res.status(400).json({
                     error: "Preencha todos os campos."
                 });
@@ -21,7 +20,6 @@ class LessonController {
             const lesson = await new Lesson({
                 title,
                 content,
-                subject_id,
                 topic_id
             }).save()
 
@@ -41,7 +39,6 @@ class LessonController {
                 id,
                 title,
                 content,
-                subject_id,
                 topic_id
             } = req.body
     
@@ -52,9 +49,9 @@ class LessonController {
             }
     
             // Verifica se os campos estão preenchidos
-            if(!title || !content || !subject_id || !topic_id){
+            if(!title && !content  && !topic_id){
                 return res.status(400).json({
-                    error: "Preencha todos os campos."
+                    error: "Não há campos para atualizar"
                 });
             }
 
@@ -68,7 +65,6 @@ class LessonController {
 
             if(title) lesson.title = title
             if(content) lesson.content = content
-            if(subject_id) lesson.subject_id = subject_id
             if(topic_id) lesson.topic_id = topic_id
 
             await lesson.save()
@@ -111,6 +107,22 @@ class LessonController {
     async findAll(req: any, res: any){
         try{
             const lesson = await Lesson.find({})
+
+            return res.status(200).json(lesson)
+        }catch(error: any){
+            console.log("Error: " + error);
+            return res.status(401).json({
+                error: error.message
+            });
+        }
+    }
+
+    async findByTopic(req: any, res: any){
+        try{
+            const {
+                topic_id
+            } = req.body
+            const lesson = await Lesson.find({topic_id})
 
             return res.status(200).json(lesson)
         }catch(error: any){

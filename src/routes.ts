@@ -43,12 +43,14 @@ routes.delete("/deleteAchievement", auth, AchievementController.delete)
 // Rotas de dicas
 routes.post("/createTip", auth, TipController.create)
 routes.get("/getTips", auth, TipController.findAll)
+routes.get("/getMyTips", auth, TipController.findByUser)
 routes.put("/updateTip", auth, TipController.update)
 routes.delete("/deleteTip", auth, TipController.delete)
 
 // Rotas de questões
 routes.post("/createQuestion", auth, QuestionController.create)
 routes.get("/getQuestions", auth, QuestionController.findAll)
+routes.post("/getQuestionsByTopic", auth, QuestionController.findByTopic)
 routes.put("/updateQuestion", auth, QuestionController.update)
 routes.delete("/deleteQuestion", auth, QuestionController.delete)
 
@@ -68,6 +70,7 @@ routes.delete("/deleteEnem", auth, EnemController.delete)
 // Rotas de Aulas
 routes.post("/createLesson", auth, LessonController.create)
 routes.get("/getLessons", auth, LessonController.findAll)
+routes.post("/getLessonsByTopic", auth, LessonController.findByTopic)
 routes.put("/updateLesson", auth, LessonController.update)
 routes.delete("/deleteLesson", auth, LessonController.delete)
 routes.post("/lessonViewned", LessonController.lessonViewned)
@@ -81,6 +84,8 @@ routes.delete("/deleteSubject", auth, SubjectController.delete)
 // Rotas de Tópicos
 routes.post("/createTopic", auth, TopicController.create)
 routes.get("/getTopics", auth, TopicController.findAll)
+routes.get("/getTopicsBySubject", auth, TopicController.findBySubject)
+routes.get("/getContent", auth, TopicController.getLessonsAndQuizzes)
 routes.put("/updateTopic", auth, TopicController.update)
 routes.delete("/deleteTopic", auth, TopicController.delete)
 

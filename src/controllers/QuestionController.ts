@@ -6,11 +6,12 @@ class QuestionController {
             let {
                 questionHtml,
                 alternatives,
-                answer
+                answer,
+                topic_id
             } = req.body
 
             // Verifica se os campos estão preenchidos
-            if(!questionHtml || !alternatives || !answer){
+            if(!questionHtml || !alternatives || !answer || !topic_id){
                 return res.status(400).json({
                     error: "Preencha todos os campos."
                 });
@@ -19,7 +20,8 @@ class QuestionController {
             const question = await new Question({
                 question: questionHtml,
                 alternatives,
-                answer
+                answer,
+                topic_id
             }).save()
 
             return res.status(200).json(question)
@@ -38,7 +40,8 @@ class QuestionController {
                 id,
                 questionHtml,
                 alternatives,
-                answer
+                answer,
+                topic_id
             } = req.body
     
             if(!id){
@@ -48,9 +51,9 @@ class QuestionController {
             }
     
             // Verifica se os campos estão preenchidos
-            if(!questionHtml || !alternatives || !answer){
+            if(!questionHtml && !alternatives && !answer && !topic_id){
                 return res.status(400).json({
-                    error: "Preencha todos os campos."
+                    error: "Não há campos para atualizar."
                 });
             }
 
@@ -65,6 +68,7 @@ class QuestionController {
             if(questionHtml) question.question = questionHtml
             if(alternatives) question.alternatives = alternatives
             if(answer) question.answer = answer
+            if(topic_id) question.topic_id = topic_id
 
             await question.save()
 
@@ -105,9 +109,25 @@ class QuestionController {
 
     async findAll(req: any, res: any){
         try{
-            const question = await Question.find({})
+            const questions = await Question.find({})
 
-            return res.status(200).json(question)
+            return res.status(200).json(questions)
+        }catch(error: any){
+            console.log("Error: " + error);
+            return res.status(401).json({
+                error: error.message
+            });
+        }
+    }
+
+    async findByTopic(req: any, res: any){
+        try{
+            const {
+                topic_id
+            } = req.body
+            const questions = await Question.find({topic_id})
+
+            return res.status(200).json(questions)
         }catch(error: any){
             console.log("Error: " + error);
             return res.status(401).json({

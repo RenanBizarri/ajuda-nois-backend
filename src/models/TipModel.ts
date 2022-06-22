@@ -1,14 +1,13 @@
 import mongoose from "mongoose"
 
 export interface ITip {
-    topic: string,
+    name: string,
     information: string,
     user_id: mongoose.Types.ObjectId 
-    color?: string
 }
 
 export const TipSchema: mongoose.Schema = new mongoose.Schema<ITip>({
-    topic: {
+    name: {
         type: String,
         required: true
     },
@@ -20,9 +19,6 @@ export const TipSchema: mongoose.Schema = new mongoose.Schema<ITip>({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
-    },
-    color: {
-        type: String
     }
 })
 
