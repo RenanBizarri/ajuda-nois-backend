@@ -101,7 +101,22 @@ class TopicController {
 
     async findAll(req: any, res: any){
         try{
-            const topic = await Topic.find({})
+            const topic = await Topic.aggregate([
+                {
+                    '$lookup': {
+                      'from': 'subjects', 
+                      'localField': 'subject_id', 
+                      'foreignField': '_id', 
+                      'as': 'subject_info'
+                    }
+                  }, 
+                  {
+                    '$unwind': {
+                      'path': '$subject_info', 
+                      'preserveNullAndEmptyArrays': true
+                    }
+                  }
+            ])
 
             return res.status(200).json(topic)
         }catch(error: any){
