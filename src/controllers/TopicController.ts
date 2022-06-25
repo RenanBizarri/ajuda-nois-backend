@@ -104,35 +104,19 @@ class TopicController {
             const topic = await Topic.aggregate([
                 {
                     '$lookup': {
-                      'from': 'subjects', 
-                      'localField': 'subject_id', 
+                      'from': 'topics', 
+                      'localField': 'topic_id', 
                       'foreignField': '_id', 
                       'as': 'subject_info'
                     }
                   }, 
                   {
                     '$unwind': {
-                      'path': '$subject_info', 
+                      'path': '$topic_info', 
                       'preserveNullAndEmptyArrays': true
                     }
                   }
             ])
-
-            return res.status(200).json(topic)
-        }catch(error: any){
-            console.log("Error: " + error);
-            return res.status(401).json({
-                error: error.message
-            });
-        }
-    }
-
-    async findBySubject(req: any, res: any){
-        try{
-            const {
-                subject_id
-            } = req.body
-            const topic = await Topic.find({subject_id})
 
             return res.status(200).json(topic)
         }catch(error: any){

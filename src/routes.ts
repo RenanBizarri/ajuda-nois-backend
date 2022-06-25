@@ -33,6 +33,7 @@ routes.get("/changePassword/:reset_token", UserController.verifyResetToken)
 routes.post("/addPomodoro", auth, UserController.addPomodoro)
 routes.post("/dashboard", auth, UserController.dashboard)
 routes.post("/updateUser", auth, UserController.updateUser)
+routes.post("/updateXp", UserController.updateUserTest)
 
 // Rotas de conquistas
 routes.post("/createAchievement", auth, AchievementController.create)
@@ -66,6 +67,7 @@ routes.post("/createEnem", auth, EnemController.create)
 routes.get("/getEnems", auth, EnemController.findAll)
 routes.put("/updateEnem", auth, EnemController.update)
 routes.delete("/deleteEnem", auth, EnemController.delete)
+routes.get("/getEnemsOrganized", auth, EnemController.findByYearDayCollor)
 
 // Rotas de Aulas
 routes.post("/createLesson", auth, LessonController.create)
@@ -84,7 +86,6 @@ routes.delete("/deleteSubject", auth, SubjectController.delete)
 // Rotas de Tópicos
 routes.post("/createTopic", auth, TopicController.create)
 routes.get("/getTopics", auth, TopicController.findAll)
-routes.get("/getTopicsBySubject", auth, TopicController.findBySubject)
 routes.get("/getContent", auth, TopicController.getLessonsAndQuizzes)
 routes.put("/updateTopic", auth, TopicController.update)
 routes.delete("/deleteTopic", auth, TopicController.delete)

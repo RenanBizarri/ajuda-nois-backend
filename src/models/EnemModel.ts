@@ -4,7 +4,8 @@ export interface IEnem {
     year: number,
     exam: string, 
     template: string,
-    color: string
+    color: string,
+    day: string
 }
 
 export const EnemSchema: mongoose.Schema = new mongoose.Schema<IEnem>({
@@ -21,7 +22,12 @@ export const EnemSchema: mongoose.Schema = new mongoose.Schema<IEnem>({
         required: true
     },
     color: {
-        type: String
+        type: String,
+        required: true
+    },
+    day: {
+        type: String,
+        required: true
     }
 })
 
