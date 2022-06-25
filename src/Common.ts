@@ -3,6 +3,7 @@ import {getStorage, ref, uploadString, getDownloadURL} from "firebase/storage"
 import * as Uuid from "uuid"
 import * as Mailer from "nodemailer"
 import xlsx from "xlsx";
+import Achievement from "./models/AchievementModel";
 
 async function uploadFirebase(base64: string, format: string, font: string){
     try{
@@ -119,6 +120,29 @@ class Common {
             return res.status(401).json({
                 error: error.message
             });
+        }
+    }
+
+    async findAchievementMissing(user: any, type: string){
+        try{
+            const achievements = await Achievement.find({type})
+            let achievementsMissing: any[] = []
+
+            if(user.achievements){
+                for(let achievement of achievements){
+                    let flag = 0;
+                    for(let verifyAchievement of user.achievements){
+                        if(verifyAchievement.achievement_id.toString() == achievement._id.toString()) flag = 1
+                    }
+                    if(!flag) achievementsMissing.push(achievement)
+                }
+            }else{
+                achievementsMissing = achievements
+            }
+    
+            return achievementsMissing
+        }catch(error: any){
+            return error
         }
     }
 }

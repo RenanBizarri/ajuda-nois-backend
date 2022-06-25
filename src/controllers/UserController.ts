@@ -19,6 +19,60 @@ function generateToken(params = {}){
     });
 }
 
+async function updateXp(user: any, experience: number){
+    user.experience = user.experience + experience
+    await user.save()
+
+    let achievementsGained: any[] = []
+    let i = 0;
+    while(user.experience > xp[i]){
+        i++;
+    }
+    if(lvl[i] > user.level){
+        user.level = lvl[i]
+        await user.save()
+
+        const achievements = await levelUpAchievement(user)
+        achievementsGained = achievementsGained.concat(achievements)
+    }
+
+    return achievementsGained
+}
+
+async function levelUpAchievement(user: any){
+    try{
+        let achievements = await Common.findAchievementMissing(user, "level")
+        let achievementsGained: any[] = [], experience: number = 0
+        
+        const adiquired = new Date().toISOString().substring(0, 10)
+
+        for(let i = 0; i < achievements.length; i++){
+            const achievement = achievements[i]
+            if(user.level >= achievement.quantity){
+                const newAchievement = {
+                    achievement_id: achievement._id,
+                    adiquired
+                }
+                if(user.achievements){
+                    user.achievements.push(newAchievement)
+                }else{
+                    user.achievements = [newAchievement]
+                }
+                experience += achievement.experience
+                await user.save()
+
+                achievementsGained.push(achievement)
+            }
+        }   
+
+        if(experience > 0) achievementsGained = achievementsGained.concat(await updateXp(user, experience)) 
+
+        return achievementsGained
+    }catch(error: any){
+        return error
+    }
+}
+
 class UserController{
     public async createAdmin(req: any, res: any){
         try{
@@ -430,20 +484,6 @@ class UserController{
         return res.status(200).json(response)
     }
 
-    async updateXp(user: any, experience: any){
-        user.experience = user.experience + experience
-
-        let i = 0;
-        while(user.experience > xp[i]){
-            i++;
-        }
-        user.level = lvl[i];
-
-        await user.save()
-
-        return
-    }
-
     async addPomodoro(req: any, res: any){
         const {
             user_id,
@@ -590,6 +630,23 @@ class UserController{
             return res.status(401).json({
                 error: error.message
             });
+        }
+    }
+
+    async updateUserTest(req: any, res: any){
+        try{
+            const {
+                user_id,
+                xp
+            } = req.body
+
+
+            const user = await User.findById(user_id)
+            const achievement = await updateXp(user, xp)
+
+            return res.status(200).json({user, achievement})
+        }catch(error: any){
+            return error
         }
     }
 }
