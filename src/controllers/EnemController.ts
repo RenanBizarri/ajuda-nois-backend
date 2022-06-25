@@ -6,7 +6,8 @@ class EnemController {
             let {
                 year,
                 exam_base64,
-                template_base64
+                template_base64,
+                color
             } = req.body
 
             // Verifica se os campos estão preenchidos
@@ -17,14 +18,15 @@ class EnemController {
             }
 
             let file = await Common.uploadFirebase(exam_base64, 'application/pdf', "enem_exam")
-            const exam = file.metadata.medialink
+            const exam = file
             file = await Common.uploadFirebase(template_base64, 'application/pdf', "enem_template")
-            const template = file.metadata.medialink
+            const template = file
 
             const enem = await new Enem({
                 year, 
                 exam, 
-                template
+                template,
+                color
             }).save()
 
             return res.status(200).json(enem)
@@ -43,7 +45,8 @@ class EnemController {
                 id,
                 year,
                 exam_base64,
-                template_base64
+                template_base64,
+                color
             } = req.body
     
             if(!id){
@@ -53,7 +56,7 @@ class EnemController {
             }
     
             // Verifica se os campos estão preenchidos
-            if(!year && !exam_base64 && !template_base64){
+            if(!year && !exam_base64 && !template_base64 && !color){
                 return res.status(400).json({
                     error: "Nenhum campo para atualizar."
                 });
@@ -71,12 +74,13 @@ class EnemController {
             if(year) enem.year = year
             if(exam_base64){
                 file = await Common.uploadFirebase(exam_base64, 'application/pdf', "enem_exam")
-                enem.exam = file.metadata.medialink
+                enem.exam = file
             } 
             if(template_base64){
                 file = await Common.uploadFirebase(template_base64, 'application/pdf', "enem_template")
-                enem.template = file.metadata.medialink
+                enem.template = file
             } 
+            if(color) enem.color = color
 
             await enem.save()
 

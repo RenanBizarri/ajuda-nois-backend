@@ -3,7 +3,8 @@ import mongoose from "mongoose"
 export interface IEnem {
     year: number,
     exam: string, 
-    template: string
+    template: string,
+    color: string
 }
 
 export const EnemSchema: mongoose.Schema = new mongoose.Schema<IEnem>({
@@ -18,6 +19,9 @@ export const EnemSchema: mongoose.Schema = new mongoose.Schema<IEnem>({
     template: {
         type: String,
         required: true
+    },
+    color: {
+        type: String
     }
 })
 
