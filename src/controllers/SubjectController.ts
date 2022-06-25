@@ -5,7 +5,7 @@ class SubjectController {
             let {
                 name,
                 area,
-                user_id
+                teacher_id
             } = req.body
 
             // Verifica se os campos estão preenchidos
@@ -18,7 +18,7 @@ class SubjectController {
             const subject = new Subject({
                 name, 
                 area, 
-                user_id
+                user_id: teacher_id
             })
 
             await subject.save()
@@ -39,7 +39,7 @@ class SubjectController {
                 id,
                 name,
                 area,
-                user_id
+                teacher_id
             } = req.body
     
             if(!id){
@@ -49,7 +49,7 @@ class SubjectController {
             }
     
             // Verifica se os campos estão preenchidos
-            if(!name && !area && !user_id){
+            if(!name && !area && !teacher_id){
                 return res.status(400).json({
                     error: "Nenhum campo para atualizar."
                 });
@@ -65,8 +65,8 @@ class SubjectController {
 
             if(name) subject.name = name
             if(area) subject.area = area
-            if(user_id) {
-                subject.user_id = user_id
+            if(teacher_id) {
+                subject.user_id = teacher_id
             }
 
             await subject.save()
