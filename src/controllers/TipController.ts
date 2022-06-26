@@ -5,12 +5,12 @@ class TipController {
         try{
             let {
                 name,
-                information,
+                content,
                 user_id
             } = req.body
 
             // Verifica se os campos estão preenchidos
-            if(!name || !information || !user_id){
+            if(!name || !content || !user_id){
                 return res.status(400).json({
                     error: "Campos não preenchidos."
                 });
@@ -18,7 +18,7 @@ class TipController {
 
             const tip = await new Tip({
                 name, 
-                information, 
+                content, 
                 user_id
             }).save()
 
@@ -37,7 +37,7 @@ class TipController {
             let {
                 id,
                 name,
-                information
+                content
             } = req.body
     
             if(!id){
@@ -47,7 +47,7 @@ class TipController {
             }
     
             // Verifica se os campos estão preenchidos
-            if(!name && !information){
+            if(!name && !content){
                 return res.status(400).json({
                     error: "Nenhum campo para atualizar."
                 });
@@ -62,7 +62,7 @@ class TipController {
             }
 
             if(name) tip.name = name
-            if(information) tip.information = information
+            if(content) tip.content = content
 
             await tip.save()
 

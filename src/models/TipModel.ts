@@ -2,7 +2,7 @@ import mongoose from "mongoose"
 
 export interface ITip {
     name: string,
-    information: string,
+    content: string,
     user_id: mongoose.Types.ObjectId 
 }
 
@@ -11,7 +11,7 @@ export const TipSchema: mongoose.Schema = new mongoose.Schema<ITip>({
         type: String,
         required: true
     },
-    information: {
+    content: {
         type: String,
         required: true
     },
