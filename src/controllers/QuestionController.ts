@@ -5,6 +5,7 @@ class QuestionController {
     async create(req: any, res: any){
         try{
             let {
+                name,
                 questionHtml,
                 alternatives,
                 answer,
@@ -12,13 +13,14 @@ class QuestionController {
             } = req.body
 
             // Verifica se os campos estão preenchidos
-            if(!questionHtml || !alternatives || !answer || !topic_id){
+            if(!name || !questionHtml || !alternatives || !answer || !topic_id){
                 return res.status(400).json({
                     error: "Preencha todos os campos."
                 });
             }
 
             const question = await new Question({
+                name,
                 question: questionHtml,
                 alternatives,
                 answer,
@@ -39,6 +41,7 @@ class QuestionController {
         try{
             let {
                 id,
+                name,
                 questionHtml,
                 alternatives,
                 answer,
@@ -52,7 +55,7 @@ class QuestionController {
             }
     
             // Verifica se os campos estão preenchidos
-            if(!questionHtml && !alternatives && !answer && !topic_id){
+            if(!name && !questionHtml && !alternatives && !answer && !topic_id){
                 return res.status(400).json({
                     error: "Não há campos para atualizar."
                 });
@@ -66,6 +69,7 @@ class QuestionController {
                 });
             }
 
+            if(name) question.name = name
             if(questionHtml) question.question = questionHtml
             if(alternatives) question.alternatives = alternatives
             if(answer) question.answer = answer

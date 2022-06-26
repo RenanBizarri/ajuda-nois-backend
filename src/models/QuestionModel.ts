@@ -1,6 +1,7 @@
 import mongoose from "mongoose"
 
 export interface IQuestion {
+    name: string,
     question: string,
     alternatives: [string],
     answer: string,
@@ -8,6 +9,11 @@ export interface IQuestion {
 }
 
 export const QuestionSchema: mongoose.Schema = new mongoose.Schema<IQuestion>({
+    name: {
+        type: String,
+        required: true,
+        unique: true
+    },
     question: {
         type: String,
         required: true
