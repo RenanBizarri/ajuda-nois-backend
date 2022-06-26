@@ -423,71 +423,83 @@ class UserController{
     }
 
     async changePassword(req: any, res: any){
-        const {
-            user_id,
-            new_password,
-        } = req.body
+        try{
+            const {
+                user_id,
+                new_password,
+            } = req.body
 
-        let user = await User.findById(user_id)
+            let user = await User.findById(user_id)
 
-        if(!user) return res.status(400).json({error: "Usuário não encontrado"})
+            if(!user) return res.status(400).json({error: "Usuário não encontrado"})
 
-        user.password = new_password
-        user.password_reset_token = undefined
-        user.password_reset_expire = undefined
-        await user.save()
+            user.password = new_password
+            user.password_reset_token = undefined
+            user.password_reset_expire = undefined
+            await user.save()
 
-        return res.status(200).json(user)
+            return res.status(200).json(user)
+        }catch(error: any){
+            return res.status(400).json(error)
+        }
     }
 
     async verifyResetToken(req: any, res: any){
-        let reset_token = req.params.reset_token
+        try{
+            let reset_token = req.params.reset_token
 
-        const user = await User.findOne({password_reset_token: reset_token})
+            const user = await User.findOne({password_reset_token: reset_token})
 
-        if(!user){
-            return res.status(401).json({
-                error: "Token invalido"
+            if(!user){
+                return res.status(401).json({
+                    error: "Token invalido"
+                })
+            }
+
+            if(user.password_reset_expire! < Date.now()){
+                return res.status(401).json({
+                    error: "Token expirado"
+                })
+            }
+
+            return res.status(200).json({
+                message: "Token valido",
+                user
             })
+        }catch(error: any){
+            return res.status(400).json(error)
         }
-
-        if(user.password_reset_expire! < Date.now()){
-            return res.status(401).json({
-                error: "Token expirado"
-            })
-        }
-
-        return res.status(200).json({
-            message: "Token valido",
-            user
-        })
     }
 
     async requestRecoverPassword(req: any, res: any){
-        const {
-            email
-        } = req.body
+        try{
+            const {
+                email
+            } = req.body
 
-        const password_reset_token = crypto.randomBytes(20).toString("hex")
-        const password_reset_expire = Date.now() + 3600000;
+            const password_reset_token = crypto.randomBytes(20).toString("hex")
+            const password_reset_expire = Date.now() + 3600000;
 
-        const update_values = {
-            password_reset_token, password_reset_expire
+            const update_values = {
+                password_reset_token, password_reset_expire
+            }
+
+            const user = await User.findOneAndUpdate({email}, update_values)
+            
+            if(!user){ 
+                return res.status(400).json({
+                    error: "Nenhum usuario correspondente a esse email foi encontrado"
+                })
+            }
+
+            const result = await Common.sendMail(email, "recover_pass", password_reset_token)
+
+            return res.status(200).json({
+                message: result
+            });
+        }catch(error: any){
+            return res.status(400).json(error)
         }
-
-        const user = await User.findOneAndUpdate({email}, update_values)
-        
-        if(!user){ 
-            return res.status(400).json({
-                error: "Nenhum usuario correspondente a esse email foi encontrado"
-            })
-        }
-
-        const result = await Common.sendMail(email, "recover_pass", password_reset_token)
-
-        return res.status(200).json({
-            message: result
-        });
     }
 
     async getAllUsers(req: any, res: any){
@@ -504,86 +516,90 @@ class UserController{
     }
 
     async addPomodoro(req: any, res: any){
-        const {
-            user_id,
-            time,
-            area,
-        } = req.body
+        try{
+            const {
+                user_id,
+                time,
+                area,
+            } = req.body
 
-        const date = new Date()
-        const month = date.getMonth()
-        const year = date.getFullYear()
+            const date = new Date()
+            const month = date.getMonth()
+            const year = date.getFullYear()
 
-        let user = await User.findById(user_id)
+            let user = await User.findById(user_id)
 
-        if(!user){
-            return res.status(400).json({
-                error: "Usuario não encontrado"
-            })
-        }
+            if(!user){
+                return res.status(400).json({
+                    error: "Usuario não encontrado"
+                })
+            }
 
-        if(user.pomodoros){
-            for(let i = 0; i < user.pomodoros?.length; i++){
-                if( user.pomodoros[i].month == month &&  user.pomodoros[i].year == year){
-                    switch(area){
-                        case "human_sciences": 
-                            user.pomodoros[i].pomodoro.humans_time += time
-                            break
-                        case "natural_sciences": 
-                            user.pomodoros[i].pomodoro.natural_time += time
-                            break
-                        case "languages": 
-                            user.pomodoros[i].pomodoro.languages_time += time
-                            break
-                        case "mathematics": 
-                            user.pomodoros[i].pomodoro.maths_time += time
-                            break
+            if(user.pomodoros){
+                for(let i = 0; i < user.pomodoros?.length; i++){
+                    if( user.pomodoros[i].month == month &&  user.pomodoros[i].year == year){
+                        switch(area){
+                            case "human_sciences": 
+                                user.pomodoros[i].pomodoro.humans_time += time
+                                break
+                            case "natural_sciences": 
+                                user.pomodoros[i].pomodoro.natural_time += time
+                                break
+                            case "languages": 
+                                user.pomodoros[i].pomodoro.languages_time += time
+                                break
+                            case "mathematics": 
+                                user.pomodoros[i].pomodoro.maths_time += time
+                                break
+                        }
+
+                        await user.save()
+
+                        return res.status(200).json(user)
                     }
-
-                    await user.save()
-
-                    return res.status(200).json(user)
                 }
             }
+
+            const pomodoro = {
+                humans_time: 0,
+                natural_time: 0,
+                languages_time: 0,
+                maths_time: 0
+            }
+
+            switch(area){
+                case "human_sciences": 
+                    pomodoro.humans_time = time
+                    break
+                case "natural_sciences": 
+                    pomodoro.natural_time += time
+                    break
+                case "languages": 
+                    pomodoro.languages_time += time
+                    break
+                case "mathematics": 
+                    pomodoro.maths_time += time
+                    break
+            }
+
+            const newPomodoro = {
+                pomodoro,
+                month,
+                year
+            }
+
+            if(user.pomodoros){
+                user.pomodoros.push(newPomodoro)
+            }else{
+                user.pomodoros = [newPomodoro]
+            }
+
+            await user.save()
+
+            return res.status(200).json(user)
+        }catch(error: any){
+            return res.status(400).json(error)
         }
-
-        const pomodoro = {
-            humans_time: 0,
-            natural_time: 0,
-            languages_time: 0,
-            maths_time: 0
-        }
-
-        switch(area){
-            case "human_sciences": 
-                pomodoro.humans_time = time
-                break
-            case "natural_sciences": 
-                pomodoro.natural_time += time
-                break
-            case "languages": 
-                pomodoro.languages_time += time
-                break
-            case "mathematics": 
-                pomodoro.maths_time += time
-                break
-        }
-
-        const newPomodoro = {
-            pomodoro,
-            month,
-            year
-        }
-
-        if(user.pomodoros){
-            user.pomodoros.push(newPomodoro)
-        }else{
-            user.pomodoros = [newPomodoro]
-        }
-
-        await user.save()
-
-        return res.status(200).json(user)
     }
 
     async updateUser(req: any, res: any){
