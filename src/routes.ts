@@ -72,6 +72,7 @@ routes.get("/getEnemsOrganized", auth, EnemController.findByYearDayCollor)
 // Rotas de Aulas
 routes.post("/createLesson", auth, LessonController.create)
 routes.get("/getLessons", auth, LessonController.findAll)
+routes.post("/getLesson", auth, LessonController.findOne)
 routes.post("/getLessonsByTopic", auth, LessonController.findByTopic)
 routes.put("/updateLesson", auth, LessonController.update)
 routes.delete("/deleteLesson", auth, LessonController.delete)

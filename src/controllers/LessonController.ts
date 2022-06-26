@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import Lesson from "../models/LessonModel";
 import User from "../models/UserModel";
 
@@ -127,6 +128,39 @@ class LessonController {
                       'preserveNullAndEmptyArrays': true
                     }
                   }
+            ])
+            return res.status(200).json(lesson)
+        }catch(error: any){
+            console.log("Error: " + error);
+            return res.status(401).json({
+                error: error.message
+            });
+        }
+    }
+
+    async findOne(req: any, res: any){
+        try{
+            const lesson_id = req.body.lesson_id
+            const lesson = await Lesson.aggregate([
+                {
+                    '$lookup': {
+                      'from': 'topics', 
+                      'localField': 'topic_id', 
+                      'foreignField': '_id', 
+                      'as': 'topic_info'
+                    }
+                }, 
+                    {
+                    '$unwind': {
+                        'path': '$topic_info', 
+                        'preserveNullAndEmptyArrays': true
+                    }
+                },
+                {
+                    '$match': {
+                        '_id': new ObjectId(lesson_id)
+                    }
+                }
             ])
             return res.status(200).json(lesson)
         }catch(error: any){
