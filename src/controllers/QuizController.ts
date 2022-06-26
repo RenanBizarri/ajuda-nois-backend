@@ -92,6 +92,12 @@ class QuizController {
             }
     
             await Quiz.findByIdAndDelete(id)
+
+            await User.updateMany({
+                "quiz_score.quiz_id": id
+            }, {
+                $pull: {"quiz_score": {"quiz_id": id}}
+            })
     
             return res.status(200).json({
                 message: "Quiz excluido"

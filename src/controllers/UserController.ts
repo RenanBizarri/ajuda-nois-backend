@@ -6,6 +6,8 @@ import User from "../models/UserModel";
 import MockExam from "../models/MockExamModel";
 import Common from "../Common";
 import Subject from "../models/SubjectModel";
+import StudyPlan from "../models/StudyPlanModel";
+import Tip from "../models/TipModel";
 
 const lvl = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 const xp = [30, 90, 270, 650, 1400, 2300, 3400, 4800, 6400, 8500]
@@ -237,11 +239,28 @@ class UserController{
                     break
                 case "student":
                     await User.findByIdAndDelete(id)
+
+                    await StudyPlan.deleteMany({
+                        "user_id": id
+                    })
+            
                     break
                 case "teacher":
                     const deleter_user = await User.findById(req.body.user_id)
                     if(deleter_user?.usertype == "admin"){
                         await User.findByIdAndDelete(id)
+
+                        await Tip.deleteMany({
+                            "user_id": id
+                        })
+
+                        await Subject.updateMany({
+                            "user_id": id
+                        }, {
+                           $unset: {
+                                user_id: 1
+                           }
+                        })
                     }else{
                         return res.status(401).json({
                             message: "Somente o admin pode excluir professores"

@@ -1,4 +1,5 @@
 import Question from "../models/QuestionModel";
+import Quiz from "../models/QuizModel";
 
 class QuestionController {
     async create(req: any, res: any){
@@ -95,6 +96,12 @@ class QuestionController {
             }
     
             await Question.findByIdAndDelete(id)
+
+            await Quiz.updateMany({
+                "questions_id": id
+            }, {
+                $pull: {"questions_id": id}
+            })
     
             return res.status(200).json({
                 message: "Questão excluida"

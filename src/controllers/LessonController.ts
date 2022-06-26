@@ -92,6 +92,12 @@ class LessonController {
             }
     
             await Lesson.findByIdAndDelete(id)
+
+            await User.updateMany({
+                "lessons_viewed.lesson_id": id
+            }, {
+                $pull: {"lessons_viewed": {"lesson_id": id}}
+            })
     
             return res.status(200).json({
                 message: "Aula excluida"
