@@ -104,15 +104,15 @@ class TopicController {
             const topic = await Topic.aggregate([
                 {
                     '$lookup': {
-                      'from': 'topics', 
-                      'localField': 'topic_id', 
+                      'from': 'subjects', 
+                      'localField': 'subject_id', 
                       'foreignField': '_id', 
                       'as': 'subject_info'
                     }
                   }, 
                   {
                     '$unwind': {
-                      'path': '$topic_info', 
+                      'path': '$subject_info', 
                       'preserveNullAndEmptyArrays': true
                     }
                   }

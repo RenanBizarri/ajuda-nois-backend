@@ -112,6 +112,12 @@ class AchievementController {
             }
     
             await Achievement.findByIdAndDelete(id)
+
+            await User.updateMany({
+                "achievements.achievement_id": id
+            }, {
+                $pull: {"achievements": {"achievement_id": id}}
+            })
     
             return res.status(200).json({
                 message: "Conquista excluida"

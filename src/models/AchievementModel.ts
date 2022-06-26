@@ -31,7 +31,7 @@ export const AchievementSchema: mongoose.Schema = new mongoose.Schema<IAchieveme
     type: {
         type: String,
         required: true,
-        enum: ["pomodoro_time", "level", "quiz_completed", "topics_completed", "mock_exam_made", "mock_exam_score"]
+        enum: ["pomodoro_time", "level", "quiz_completed", "topics_completed", "mock_exam_done", "mock_exam_score"]
     },
     quantity: {
         type: Number,
