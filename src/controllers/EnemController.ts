@@ -12,7 +12,7 @@ class EnemController {
             } = req.body
 
             // Verifica se os campos estão preenchidos
-            if(!year || !exam_base64 || !template_base64 || !color || day){
+            if(!year || !exam_base64 || !template_base64 || !color || !day){
                 return res.status(400).json({
                     error: "Campos não preenchidos."
                 });
