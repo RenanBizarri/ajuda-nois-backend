@@ -86,7 +86,8 @@ routes.delete("/deleteSubject", auth, SubjectController.delete)
 // Rotas de Tópicos
 routes.post("/createTopic", auth, TopicController.create)
 routes.get("/getTopics", auth, TopicController.findAll)
-routes.get("/getContent", auth, TopicController.getLessonsAndQuizzes)
+routes.post("/getTopicsBySubject", auth, TopicController.findBySubject)
+routes.post("/getContent", auth, TopicController.getLessonsAndQuizzes)
 routes.put("/updateTopic", auth, TopicController.update)
 routes.delete("/deleteTopic", auth, TopicController.delete)
 

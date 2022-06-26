@@ -3,6 +3,7 @@ import Question from "../models/QuestionModel";
 import Quiz from "../models/QuizModel";
 import StudyPlan from "../models/StudyPlanModel";
 import Topic from "../models/TopicModel";
+import { ObjectId } from "mongodb";
 class TopicController {
     async create(req: any, res: any){
         try{
@@ -131,13 +132,48 @@ class TopicController {
                       'foreignField': '_id', 
                       'as': 'subject_info'
                     }
-                  }, 
-                  {
+                }, 
+                {
                     '$unwind': {
                       'path': '$subject_info', 
                       'preserveNullAndEmptyArrays': true
                     }
-                  }
+                }  
+            ])
+
+            return res.status(200).json(topic)
+        }catch(error: any){
+            console.log("Error: " + error);
+            return res.status(401).json({
+                error: error.message
+            });
+        }
+    }
+
+    async findBySubject(req: any, res: any){
+        try{
+            const subject_id = req.body.subject_id
+
+            const topic = await Topic.aggregate([
+                {
+                    '$lookup': {
+                      'from': 'subjects', 
+                      'localField': 'subject_id', 
+                      'foreignField': '_id', 
+                      'as': 'subject_info'
+                    }
+                }, 
+                {
+                    '$unwind': {
+                      'path': '$subject_info', 
+                      'preserveNullAndEmptyArrays': true
+                    }
+                },
+                {
+                    '$match': {
+                        'subject_id': new ObjectId(subject_id)
+                    }
+                }
             ])
 
             return res.status(200).json(topic)
@@ -152,7 +188,7 @@ class TopicController {
     async getLessonsAndQuizzes(req: any, res: any){
         try{
             const {
-                id
+                topic_id
             } = req.body
             const topic = await Topic.aggregate([
                 {
@@ -172,8 +208,8 @@ class TopicController {
                     }
                 },
                 {
-                    $match: {
-                        _id: id,
+                    '$match': {
+                        '_id': new ObjectId(topic_id)
                     }
                 }
             ])
