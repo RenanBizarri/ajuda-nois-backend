@@ -52,7 +52,7 @@ class Common {
     async sendMail(to: string, mail_type: string, token: string = "", password: string = ""){
         let subject, message
         let url = process.env.URL_LOCAL 
-        if(token != "") url += `changePassword/${token}`
+        if(token != "") url += `changePassword?token=${token}`
 
         switch (mail_type) {
             case "recover_pass":
