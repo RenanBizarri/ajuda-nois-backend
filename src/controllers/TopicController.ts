@@ -1,3 +1,7 @@
+import Lesson from "../models/LessonModel";
+import Question from "../models/QuestionModel";
+import Quiz from "../models/QuizModel";
+import StudyPlan from "../models/StudyPlanModel";
 import Topic from "../models/TopicModel";
 class TopicController {
     async create(req: any, res: any){
@@ -87,6 +91,24 @@ class TopicController {
             }
     
             await Topic.findByIdAndDelete(id)
+
+            await Question.deleteMany({
+                topic_id: id
+            })
+
+            await Quiz.deleteMany({
+                topic_id: id
+            })
+
+            await Lesson.deleteMany({
+                topic_id: id
+            })
+
+            await StudyPlan.updateMany({
+                "studies.topic_id": id
+            }, {
+                $pull: {"studies": {"topic_id": id}}
+            })
     
             return res.status(200).json({
                 message: "Tópico excluido"

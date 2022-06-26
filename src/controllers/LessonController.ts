@@ -106,8 +106,22 @@ class LessonController {
 
     async findAll(req: any, res: any){
         try{
-            const lesson = await Lesson.find({})
-
+            const lesson = await Lesson.aggregate([
+                {
+                    '$lookup': {
+                      'from': 'topics', 
+                      'localField': 'topic_id', 
+                      'foreignField': '_id', 
+                      'as': 'topic_info'
+                    }
+                  }, 
+                  {
+                    '$unwind': {
+                      'path': '$topic_info', 
+                      'preserveNullAndEmptyArrays': true
+                    }
+                  }
+            ])
             return res.status(200).json(lesson)
         }catch(error: any){
             console.log("Error: " + error);
