@@ -116,8 +116,22 @@ class QuestionController {
 
     async findAll(req: any, res: any){
         try{
-            const questions = await Question.find({})
-
+            const questions = await Question.aggregate([
+                {
+                    '$lookup': {
+                      'from': 'topics', 
+                      'localField': 'topic_id', 
+                      'foreignField': '_id', 
+                      'as': 'topic_info'
+                    }
+                  }, 
+                  {
+                    '$unwind': {
+                      'path': '$topic_info', 
+                      'preserveNullAndEmptyArrays': true
+                    }
+                  }
+            ])
             return res.status(200).json(questions)
         }catch(error: any){
             console.log("Error: " + error);

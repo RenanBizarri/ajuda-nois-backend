@@ -112,7 +112,22 @@ class QuizController {
 
     async findAll(req: any, res: any){
         try{
-            const quiz = await Quiz.find({})
+            const quiz = await Quiz.aggregate([
+                {
+                    '$lookup': {
+                      'from': 'topics', 
+                      'localField': 'topic_id', 
+                      'foreignField': '_id', 
+                      'as': 'topic_info'
+                    }
+                  }, 
+                  {
+                    '$unwind': {
+                      'path': '$topic_info', 
+                      'preserveNullAndEmptyArrays': true
+                    }
+                  }
+            ])
 
             return res.status(200).json(quiz)
         }catch(error: any){
