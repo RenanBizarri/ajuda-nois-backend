@@ -57,7 +57,8 @@ routes.delete("/deleteQuestion", auth, QuestionController.delete)
 
 // Rotas de quizes
 routes.post("/createQuiz", auth, QuizController.create)
-routes.get("/getQuizes", auth, QuizController.findAll)
+routes.get("/getQuizzes", auth, QuizController.findAll)
+routes.post("/getQuiz", auth, QuizController.findOne)
 routes.put("/updateQuiz", auth, QuizController.update)
 routes.delete("/deleteQuiz", auth, QuizController.delete)
 routes.post("/finishQuiz", QuizController.finishQuiz)

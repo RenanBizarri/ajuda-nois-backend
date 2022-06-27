@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import Common from "../Common";
 import Quiz from "../models/QuizModel";
 import User from "../models/UserModel";
@@ -230,6 +231,39 @@ class QuizController {
                   }
             ])
 
+            return res.status(200).json(quiz)
+        }catch(error: any){
+            console.log("Error: " + error);
+            return res.status(401).json({
+                error: error.message
+            });
+        }
+    }
+
+    async findOne(req: any, res: any){
+        try{
+            const quiz_id = req.body.quiz_id
+            const quiz = await Quiz.aggregate([
+                {
+                    $lookup: {
+                      from: 'topics', 
+                      localField: 'topic_id', 
+                      foreignField: '_id', 
+                      as: 'topic_info'
+                    }
+                }, 
+                    {
+                    $unwind: {
+                        path: '$topic_info', 
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $match: {
+                        _id: new ObjectId(quiz_id)
+                    }
+                }
+            ])
             return res.status(200).json(quiz)
         }catch(error: any){
             console.log("Error: " + error);
