@@ -3,12 +3,13 @@ import Subject from "../models/SubjectModel";
 import User from "../models/UserModel";
 import Common from "../Common";
 import { ObjectId } from "mongodb";
+import UserController from "./UserController";
 
 async function getSubjects() {
     const all_subjects = await Subject.find({})
     let subjects_names: any = [], subjects_ids: any = [], subjects_area: any = []
     all_subjects.forEach(subject => {
-        subjects_ids.push(subject._id)
+        subjects_ids.push(subject._id.toString())
         subjects_names.push(subject.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase())
         subjects_area.push(subject.area)
     })
@@ -82,7 +83,7 @@ async function insertOrUpdateStudentsTemplate(base64: string, mockExam: any, sub
 
     const possibleAnwsers = ["", "a", "b", "c", "d", "e", "A", "B", "C", "D", "E"]
     const template = mockExam.template
-    console.log(sheet_data)
+    let achievementsGained: any[] = []
 
     for(let i = 0; i < sheet_data.length; i++){
         const row: any = sheet_data[i]
@@ -91,21 +92,20 @@ async function insertOrUpdateStudentsTemplate(base64: string, mockExam: any, sub
             const questionNumber = Number(question)
             if(question != 'Emails' && questionNumber > 0 && questionNumber < 186) {
                 const awnser = row[question]
-                console.log(awnser, possibleAnwsers.includes(awnser))
                 if(possibleAnwsers.includes(awnser)){
                     student_template.push(awnser)
                     if(template[questionNumber-1] === awnser){
                         switch(subjects_area[questionNumber-1]){
-                            case "humanScience":
+                            case "human_sciences":
                                 humanScore++
                                 break
-                            case "language":
+                            case "languages":
                                 languageScore++
                                 break
-                            case "mathematic":
+                            case "mathematics":
                                 mathScore++
                                 break
-                            case "naturalScience":
+                            case "natural_sciences":
                                 natureScore++
                                 break
                             default: 
@@ -120,6 +120,8 @@ async function insertOrUpdateStudentsTemplate(base64: string, mockExam: any, sub
                 }
             }
         }
+
+        console.log(mathScore)
 
         // Se não houver mais de 185 ou menos de 180 questões 
         if(student_template.length != 185 || error_flag > 0){
@@ -166,7 +168,11 @@ async function insertOrUpdateStudentsTemplate(base64: string, mockExam: any, sub
                         mathematics_score: mathScore
                     }]
                 }
+
                 await student.save()
+
+                achievementsGained = achievementsGained.concat(await mockExamAchievement(student, humanScore, natureScore, languageScore, mathScore))
+
                 break
             }
         }
@@ -178,7 +184,7 @@ async function insertOrUpdateStudentsTemplate(base64: string, mockExam: any, sub
         }
     }
 
-    return {error_flag, error_info, invalid_emails}
+    return {error_flag, error_info, invalid_emails, achievementsGained}
 }
 
 function errorHub(error_flag: number, error_info: any, invalid_emails: Array<string>){
@@ -216,6 +222,80 @@ function errorHub(error_flag: number, error_info: any, invalid_emails: Array<str
     return error_message
 }
 
+async function mockExamAchievement(user: any, humanScore: number, natureScore: number, languageScore: number, mathScore: number) {
+    try{
+        let achievements = await Common.findAchievementMissing(user, ["mock_exam_done", "mock_exam_score"])
+        let achievementsGained: any[] = [], experience: number = 0
+
+        if(achievements.length > 0){
+            const totalDone = user.mock_exams.length
+            const totalScore = humanScore + natureScore + languageScore + mathScore
+            const adiquired = new Date().toISOString().substring(0, 10)
+
+            achievements.forEach((achievement: any): any => {
+                const newAchievement = {
+                    achievement_id: achievement._id,
+                    adiquired
+                }
+                if(achievement.type === "mock_exam_done"){
+                    if(totalDone >= achievement.quantity){
+                        user.achievements.push(newAchievement)
+                        achievementsGained.push(achievement)
+                        experience += achievement.experience
+                    }
+                }else{
+                    switch(achievement.area){
+                        case "human_sciences": 
+                            if(humanScore >= achievement.quantity){
+                                user.achievements.push(newAchievement)
+                                achievementsGained.push(achievement)
+                                experience += achievement.experience
+                            } 
+                            break
+                        case "natural_sciences": 
+                            if(natureScore >= achievement.quantity){
+                                user.achievements.push(newAchievement)
+                                achievementsGained.push(achievement)
+                                experience += achievement.experience
+                            }
+                            break
+                        case "languages": 
+                            if(languageScore >= achievement.quantity){
+                                user.achievements.push(newAchievement)
+                                achievementsGained.push(achievement)
+                                experience += achievement.experience
+                            }
+                            break
+                        case "mathematics": 
+                            if(mathScore >= achievement.quantity){
+                                user.achievements.push(newAchievement)
+                                achievementsGained.push(achievement)
+                                experience += achievement.experience
+                            }
+                            break
+                        default:
+                            if(totalScore >= achievement.quantity){
+                                user.achievements.push(newAchievement)
+                                achievementsGained.push(achievement)
+                                experience += achievement.experience
+                            }
+                            break
+                    }
+                }
+            })
+
+            await user.save()
+
+            if(experience > 0) achievementsGained = achievementsGained.concat(await UserController.updateXp(user, experience)) 
+        }
+
+        return achievementsGained
+
+    }catch(error: any){
+        return error.message
+    }
+}
+
 class MockExamController {
     async create(req: any, res: any){
         try{
@@ -224,8 +304,6 @@ class MockExamController {
                 template_64,
                 students_template_64
             } = req.body
-
-            console.log("+++++1++++")
 
             // Verifica se os campos estão preenchidos
             if(!date || !template_64 || !students_template_64){
@@ -241,15 +319,11 @@ class MockExamController {
                 subjects_area
             } = await getSubjects()
 
-            console.log("+++++2++++")
-
-            let official_template: any = [], subjects: any = [], questionSubjectAreas: any = [], error_flag = 0, error_info: any = {}, invalid_emails: any = []
+            let official_template: any[] = [], subjects: any[] = [], questionSubjectAreas: any[] = [], error_flag = 0, error_info: any = {}, invalid_emails: any[] = [], achievements: any[] = []
 
             let mockExam = await MockExam.findOne({date})
 
             if(mockExam) error_flag = 6
-
-            console.log("+++++3++++")
 
             if(error_flag === 0){
                 let values = readOfficialTemplate(template_64, subjects_names, subjects_ids, subjects_area) 
@@ -259,8 +333,6 @@ class MockExamController {
                 error_flag = values.error_flag
                 error_info = values.error_info
 
-                console.log("+++++4++++")
-                
                 if(error_flag === 0){
                     mockExam = await new MockExam({
                         date, 
@@ -273,23 +345,19 @@ class MockExamController {
                     error_flag = studentValues.error_flag
                     error_info = studentValues.error_info
                     invalid_emails = studentValues.invalid_emails
-
-                    console.log("+++++5++++")
+                    achievements = studentValues.achievementsGained
                 }
             }
 
             if(error_flag != 0){
                 const error_message = errorHub(error_flag, error_info, invalid_emails)
 
-                console.log("+++++6++++")
-
                 return res.status(400).json({
                     error: error_message
                 })
             }else{
-                console.log("+++++7++++")
 
-                return res.status(200).json(mockExam)
+                return res.status(200).json({mockExam, achievements})
             }
 
         }catch(error: any){
@@ -330,9 +398,10 @@ class MockExamController {
                 });
             }
 
-            let errorFlag = 0, errorInfo = [], invalidEmails = []
+            let errorFlag: number = 0, errorInfo: any[] = [], invalidEmails: any[] = [], achievements: any[] = []
 
             if(date){
+                console.log(date)
                 const mockExamDateVerify = await MockExam.findOne({date})
                 if(!mockExamDateVerify){
                     mockExam.date = date
@@ -341,7 +410,7 @@ class MockExamController {
                 }
             } 
 
-            if(errorFlag > 0){
+            if(errorFlag == 0){
                 // Pega os dados das matérias
                 let {
                     subjects_names,
@@ -370,7 +439,7 @@ class MockExamController {
                 if(students_template_64){
                     if(questionSubjectAreas.length === 0){
                         mockExam.questions_subject.forEach(subject_id => {
-                            questionSubjectAreas.push(subjects_area[subjects_ids.indexOf(subject_id)])
+                            questionSubjectAreas.push(subjects_area[subjects_ids.indexOf(subject_id.toString())])
                         })
                     }
 
@@ -379,6 +448,7 @@ class MockExamController {
                     errorFlag = studentValues.error_flag
                     errorInfo = studentValues.error_info
                     invalidEmails = studentValues.invalid_emails
+                    achievements = studentValues.achievementsGained
                 }
             }
 
@@ -390,7 +460,7 @@ class MockExamController {
                 })
             }else{
                 await mockExam.save()
-                return res.status(200).json(mockExam)
+                return res.status(200).json({mockExam, achievements})
             }
 
 
@@ -410,14 +480,14 @@ class MockExamController {
     
             if(!id){
                 return res.status(400).json({
-                    error: "Sem id da matéria para excluir"
+                    error: "Sem id do Simulado para excluir"
                 });
             }
     
             await MockExam.findByIdAndDelete(id)
     
             return res.status(200).json({
-                message: "Tópico excluido"
+                message: "Simulado excluido"
             })
         }catch(error: any){
             console.log("Error: " + error);

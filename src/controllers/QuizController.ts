@@ -1,5 +1,106 @@
+import Common from "../Common";
 import Quiz from "../models/QuizModel";
 import User from "../models/UserModel";
+import TopicController from "./TopicController";
+import UserController from "./UserController";
+
+async function quizAchievement(user: any, quiz: any) {
+    try{
+        let achievements = await Common.findAchievementMissing(user, ["quiz_completed"])
+        let achievementsGained: any[] = [], experience: number = 0
+
+        if(achievements.length > 0){
+            const subject_area = quiz.topic_info.subject_info.area
+            const adiquired = new Date().toISOString().substring(0, 10)
+            let quizzes_id: any[] = []
+
+            user.quiz_score.forEach((quiz_completed: any): any => {
+                quizzes_id.push(quiz_completed.quiz_id)
+            })
+
+            const quizzes_completed = await Quiz.aggregate([
+                {
+                    $lookup: {
+                        from: "topics",
+                        localField: "topic_id",
+                        foreignField: "_id",
+                        as: "topic_info"
+                    }
+                },
+                {
+                    $unwind: {
+                      path: '$topic_info', 
+                      preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "subjects",
+                        localField: "topic_info.subject_id",
+                        foreignField: "_id",
+                        as: "subject_info"
+                    }
+                },
+                {
+                    $unwind: {
+                      path: '$subject_info', 
+                      preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "questions",
+                        localField: "questions_ids",
+                        foreignField: "_id",
+                        as: "questions_info"
+                    }
+                },
+                {
+                    $match: {
+                        _id: {
+                            $in: quizzes_id
+                        },
+                    }
+                }
+            ])
+
+            const quiz_completed_total: number = quizzes_id.length
+            let quiz_completed_area: number = 0
+
+            quizzes_completed.forEach((quiz_completed: any): any => {
+                if(quiz_completed.topic_info.subject_info.area === subject_area) quiz_completed_area++
+            })
+            
+            achievements.forEach((achievement: any): any => {
+                const newAchievement = {
+                    achievement_id: achievement._id,
+                    adiquired
+                }
+                if(achievement.area === "general"){
+                    if(quiz_completed_total >= achievement.quantity){
+                        user.achievements.push(newAchievement)
+                        achievementsGained.push(achievement)
+                        experience += achievement.experience
+                    }
+                }else if(achievement.area === subject_area){
+                    if(quiz_completed_area >= achievement.quantity){
+                        user.achievements.push(newAchievement)
+                        achievementsGained.push(achievement)
+                        experience += achievement.experience
+                    }
+                }
+            })
+
+            await user.save()
+
+            if(experience > 0) achievementsGained = achievementsGained.concat(await UserController.updateXp(user, experience)) 
+        }
+
+        return achievementsGained
+    }catch(error: any){
+        return error.message
+    }
+}
 
 class QuizController {
     async create(req: any, res: any){
@@ -114,17 +215,17 @@ class QuizController {
         try{
             const quiz = await Quiz.aggregate([
                 {
-                    '$lookup': {
-                      'from': 'topics', 
-                      'localField': 'topic_id', 
-                      'foreignField': '_id', 
-                      'as': 'topic_info'
+                    $lookup: {
+                      from: 'topics', 
+                      localField: 'topic_id', 
+                      foreignField: '_id', 
+                      as: 'topic_info'
                     }
                   }, 
                   {
-                    '$unwind': {
-                      'path': '$topic_info', 
-                      'preserveNullAndEmptyArrays': true
+                    $unwind: {
+                      path: '$topic_info', 
+                      preserveNullAndEmptyArrays: true
                     }
                   }
             ])
@@ -147,6 +248,7 @@ class QuizController {
             } = req.body
 
             let user = await User.findById(user_id)
+            let achievements: any[] = []
 
             if(user){
                 let quizFlag: boolean = false
@@ -165,6 +267,34 @@ class QuizController {
                     const date: string = new Date().toISOString().substring(0, 10)
                     let score = 0;
                     const quiz = await Quiz.aggregate([
+                        {
+                            $lookup: {
+                                from: "topics",
+                                localField: "topic_id",
+                                foreignField: "_id",
+                                as: "topic_info"
+                            }
+                        },
+                        {
+                            $unwind: {
+                              path: '$topic_info', 
+                              preserveNullAndEmptyArrays: true
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: "subjects",
+                                localField: "topic_info.subject_id",
+                                foreignField: "_id",
+                                as: "subject_info"
+                            }
+                        },
+                        {
+                            $unwind: {
+                              path: '$subject_info', 
+                              preserveNullAndEmptyArrays: true
+                            }
+                        },
                         {
                             $lookup: {
                                 from: "questions",
@@ -207,6 +337,15 @@ class QuizController {
                         user.quiz_score = [quiz_score]
                     }
                     await user.save()
+
+                    achievements = achievements.concat(await TopicController.topicAchievement(user, null, quiz_id))
+                    achievements = achievements.concat(await quizAchievement(user, quiz[0]))
+
+                    return res.status(200).json({
+                        message: "Quiz salvo",
+                        quiz_score, 
+                        achievements
+                    });
                 }
 
             }else{

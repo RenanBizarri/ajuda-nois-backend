@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import Lesson from "../models/LessonModel";
 import User from "../models/UserModel";
+import TopicController from "./TopicController";
 
 class LessonController {
     async create(req: any, res: any){
@@ -143,22 +144,22 @@ class LessonController {
             const lesson_id = req.body.lesson_id
             const lesson = await Lesson.aggregate([
                 {
-                    '$lookup': {
-                      'from': 'topics', 
-                      'localField': 'topic_id', 
-                      'foreignField': '_id', 
-                      'as': 'topic_info'
+                    $lookup: {
+                      from: 'topics', 
+                      localField: 'topic_id', 
+                      foreignField: '_id', 
+                      as: 'topic_info'
                     }
                 }, 
                     {
-                    '$unwind': {
-                        'path': '$topic_info', 
-                        'preserveNullAndEmptyArrays': true
+                    $unwind: {
+                        path: '$topic_info', 
+                        preserveNullAndEmptyArrays: true
                     }
                 },
                 {
-                    '$match': {
-                        '_id': new ObjectId(lesson_id)
+                    $match: {
+                        _id: new ObjectId(lesson_id)
                     }
                 }
             ])
@@ -195,6 +196,7 @@ class LessonController {
             } = req.body
 
             let user = await User.findById(user_id)
+            let achievements: any[] = []
 
             if(user){
                 let viewedFlag: boolean = false
@@ -223,8 +225,11 @@ class LessonController {
                     }
                     await user.save()
 
+                    achievements = achievements.concat(await TopicController.topicAchievement(user, lesson_id, null))
+
                     return res.status(200).json({
-                        message: "Aula adicionada as assistidas"
+                        message: "Aula adicionada as assistidas",
+                        achievements
                     })
                 }
             }else{

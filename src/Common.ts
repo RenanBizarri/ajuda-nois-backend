@@ -123,9 +123,9 @@ class Common {
         }
     }
 
-    async findAchievementMissing(user: any, type: string){
+    async findAchievementMissing(user: any, type: string[]){
         try{
-            const achievements = await Achievement.find({type})
+            const achievements = await Achievement.find({type: {$in: type}})
             let achievementsMissing: any[] = []
 
             if(user.achievements){

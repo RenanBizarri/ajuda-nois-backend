@@ -21,7 +21,7 @@ function generateToken(params = {}){
     });
 }
 
-async function updateXp(user: any, experience: number){
+async function handlerXp(user: any, experience: number){
     user.experience = user.experience + experience
     await user.save()
 
@@ -43,7 +43,7 @@ async function updateXp(user: any, experience: number){
 
 async function levelUpAchievement(user: any){
     try{
-        let achievements = await Common.findAchievementMissing(user, "level")
+        let achievements = await Common.findAchievementMissing(user, ["level"])
         let achievementsGained: any[] = [], experience: number = 0
         
         const adiquired = new Date().toISOString().substring(0, 10)
@@ -61,17 +61,96 @@ async function levelUpAchievement(user: any){
                     user.achievements = [newAchievement]
                 }
                 experience += achievement.experience
-                await user.save()
 
                 achievementsGained.push(achievement)
             }
         }   
 
-        if(experience > 0) achievementsGained = achievementsGained.concat(await updateXp(user, experience)) 
+        await user.save()
+
+        if(experience > 0) achievementsGained = achievementsGained.concat(await handlerXp(user, experience)) 
 
         return achievementsGained
     }catch(error: any){
         return error
+    }
+}
+
+async function pomodoroAchievement(user: any){
+    try{
+        let achievements = await Common.findAchievementMissing(user, ["pomodoro"])
+        let achievementsGained: any[] = [], experience: number = 0
+
+        if(achievements.length > 0){
+            let humans_total_time: number = 0
+            let natural_total_time: number = 0
+            let languages_total_time: number = 0
+            let maths_total_time: number = 0
+            let total_time: number = 0
+
+            const adiquired = new Date().toISOString().substring(0, 10)
+
+            user.pomodoros.forEach((pomodoro: any): any => {
+                humans_total_time += pomodoro.pomodoro.humans_time
+                natural_total_time += pomodoro.pomodoro.natural_time
+                languages_total_time += pomodoro.pomodoro.languages_time
+                maths_total_time += pomodoro.pomodoro.maths_time
+            })
+
+            total_time = humans_total_time + natural_total_time + languages_total_time + maths_total_time
+            
+            achievements.forEach((achievement: any): any => {
+                const newAchievement = {
+                    achievement_id: achievement._id,
+                    adiquired
+                }
+                switch(achievement.area){
+                    case "human_sciences": 
+                        if(humans_total_time >= achievement.quantity){
+                            user.achievements.push(newAchievement)
+                            achievementsGained.push(achievement)
+                            experience += achievement.experience
+                        } 
+                        break
+                    case "natural_sciences": 
+                        if(natural_total_time >= achievement.quantity){
+                            user.achievements.push(newAchievement)
+                            achievementsGained.push(achievement)
+                            experience += achievement.experience
+                        }
+                        break
+                    case "languages": 
+                        if(languages_total_time >= achievement.quantity){
+                            user.achievements.push(newAchievement)
+                            achievementsGained.push(achievement)
+                            experience += achievement.experience
+                        }
+                        break
+                    case "mathematics": 
+                        if(maths_total_time >= achievement.quantity){
+                            user.achievements.push(newAchievement)
+                            achievementsGained.push(achievement)
+                            experience += achievement.experience
+                        }
+                        break
+                    default:
+                        if(total_time >= achievement.quantity){
+                            user.achievements.push(newAchievement)
+                            achievementsGained.push(achievement)
+                            experience += achievement.experience
+                        }
+                        break
+                }
+            })
+
+            await user.save()
+
+            if(experience > 0) achievementsGained = achievementsGained.concat(await handlerXp(user, experience)) 
+        }
+
+        return achievementsGained
+    }catch(error: any){
+        return error.message
     }
 }
 
@@ -438,9 +517,14 @@ class UserController{
             user.password_reset_expire = undefined
             await user.save()
 
-            return res.status(200).json(user)
+            return res.status(200).json({
+                message: "Senha alterada com sucesso",
+                user
+            })
         }catch(error: any){
-            return res.status(400).json(error)
+            return res.status(400).json({
+                message: error.message
+            })
         }
     }
 
@@ -554,8 +638,9 @@ class UserController{
                         }
 
                         await user.save()
+                        const achievements = await pomodoroAchievement(user)
 
-                        return res.status(200).json(user)
+                        return res.status(200).json({user, achievements})
                     }
                 }
             }
@@ -596,7 +681,9 @@ class UserController{
 
             await user.save()
 
-            return res.status(200).json(user)
+            const achievements = await pomodoroAchievement(user)
+
+            return res.status(200).json({user, achievements})
         }catch(error: any){
             return res.status(400).json(error)
         }
@@ -668,6 +755,10 @@ class UserController{
         }
     }
 
+    async updateXp(user: any, experience: number){
+        return handlerXp(user, experience)
+    }
+
     async updateUserTest(req: any, res: any){
         try{
             const {
@@ -677,7 +768,7 @@ class UserController{
 
 
             const user = await User.findById(user_id)
-            const achievement = await updateXp(user, xp)
+            const achievement = await handlerXp(user, xp)
 
             return res.status(200).json({user, achievement})
         }catch(error: any){

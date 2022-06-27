@@ -1,6 +1,7 @@
 import mongoose from "mongoose"
 import bcrypt from "bcrypt"
 
+mongoose.Schema.Types.String.checkRequired(v => v != null)
 export interface IUser {
     created: string,
     username: string,
@@ -32,6 +33,7 @@ export interface IUser {
         lesson_id: mongoose.Types.ObjectId,
         date: string
     }],
+    topics_completed?: [mongoose.Types.ObjectId];
     pomodoros?: [{
         pomodoro: {
             humans_time: number,
@@ -142,6 +144,11 @@ export const UserSchema: mongoose.Schema = new mongoose.Schema<IUser>({
             type: String,
             required: true
         }
+    }],
+    topics_completed: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Topic",
+        required: true
     }],
     pomodoros: [{
         pomodoro: {
