@@ -11,7 +11,8 @@ async function quizAchievement(user: any, quiz: any) {
         let achievementsGained: any[] = [], experience: number = 0
 
         if(achievements.length > 0){
-            const subject_area = quiz.topic_info.subject_info.area
+            console.log(quiz)
+            const subject_area = quiz.subject_info.area
             const adiquired = new Date().toISOString().substring(0, 10)
             let quizzes_id: any[] = []
 
@@ -69,7 +70,7 @@ async function quizAchievement(user: any, quiz: any) {
             let quiz_completed_area: number = 0
 
             quizzes_completed.forEach((quiz_completed: any): any => {
-                if(quiz_completed.topic_info.subject_info.area === subject_area) quiz_completed_area++
+                if(quiz_completed.subject_info.area === subject_area) quiz_completed_area++
             })
             
             achievements.forEach((achievement: any): any => {
@@ -278,7 +279,7 @@ class QuizController {
             const {
                 user_id,
                 quiz_id,
-                awnsers
+                answers
             } = req.body
 
             let user = await User.findById(user_id)
@@ -339,16 +340,18 @@ class QuizController {
                         },
                         {
                             $match: {
-                                _id: quiz_id,
+                                _id: new ObjectId(quiz_id),
                             }
                         }
                     ])
+
+                    console.log(quiz)
 
                     if(quiz[0]){
                         if(quiz[0].questions_info){
                             let i = 0
                             quiz[0].questions_info.forEach(function (question: any) {
-                                if(question.awnser === awnsers[i]) score++;
+                                if(question.answer == answers[i]) score++;
                                 i++
                             });
                         }
@@ -362,7 +365,7 @@ class QuizController {
                         quiz_id,
                         date,
                         score,
-                        awnsers
+                        answers
                     }
 
                     if(user.quiz_score){

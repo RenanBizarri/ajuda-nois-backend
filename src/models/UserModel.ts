@@ -27,7 +27,7 @@ export interface IUser {
         quiz_id: mongoose.Types.ObjectId,
         score: number,
         date: string,
-        awnsers: [string]
+        answers: [string]
     }],
     lessons_viewed?: [{
         lesson_id: mongoose.Types.ObjectId,
@@ -129,7 +129,7 @@ export const UserSchema: mongoose.Schema = new mongoose.Schema<IUser>({
             type: String,
             required: true
         },
-        awnsers: [{
+        answers: [{
             type: String,
             required: true
         }]

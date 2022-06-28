@@ -21,14 +21,14 @@ function readOfficialTemplate(base64: string, subjects_names: Array<string>, sub
 
     let sheet_data = Common.XlsxToJson(base64)
 
-    const possibleAnwsers = ["a", "b", "c", "d", "e", "A", "B", "C", "D", "E"]
+    const possibleAnswers = ["a", "b", "c", "d", "e", "A", "B", "C", "D", "E"]
 
     for(let i = 0; i < sheet_data.length; i++){
         const row: any = sheet_data[i]
         if(row.Resposta && row.Resposta != "" && row.Matéria && row.Matéria != ""){
             const index: number = subjects_names.indexOf(row.Matéria.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
             if(index >= 0){
-                if(possibleAnwsers.includes(row.Resposta)){
+                if(possibleAnswers.includes(row.Resposta)){
                     official_template.push(row.Resposta)
                     subjects.push(subjects_ids[index])
                     questionSubjectAreas.push(subjects_area[index])
@@ -81,7 +81,7 @@ async function insertOrUpdateStudentsTemplate(base64: string, mockExam: any, sub
                 email: {$in: students_email}
             })
 
-    const possibleAnwsers = ["", "a", "b", "c", "d", "e", "A", "B", "C", "D", "E"]
+    const possibleAnswers = ["", "a", "b", "c", "d", "e", "A", "B", "C", "D", "E"]
     const template = mockExam.template
     let achievementsGained: any[] = []
 
@@ -91,10 +91,10 @@ async function insertOrUpdateStudentsTemplate(base64: string, mockExam: any, sub
         for(let question in row){
             const questionNumber = Number(question)
             if(question != 'Emails' && questionNumber > 0 && questionNumber < 186) {
-                const awnser = row[question]
-                if(possibleAnwsers.includes(awnser)){
-                    student_template.push(awnser)
-                    if(template[questionNumber-1] === awnser){
+                const answer = row[question]
+                if(possibleAnswers.includes(answer)){
+                    student_template.push(answer)
+                    if(template[questionNumber-1] === answer){
                         switch(subjects_area[questionNumber-1]){
                             case "human_sciences":
                                 humanScore++

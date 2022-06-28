@@ -116,17 +116,17 @@ class LessonController {
         try{
             const lesson = await Lesson.aggregate([
                 {
-                    '$lookup': {
-                      'from': 'topics', 
-                      'localField': 'topic_id', 
-                      'foreignField': '_id', 
-                      'as': 'topic_info'
+                    $lookup: {
+                      from: 'topics', 
+                      localField: 'topic_id', 
+                      foreignField: '_id', 
+                      as: 'topic_info'
                     }
                   }, 
                   {
-                    '$unwind': {
-                      'path': '$topic_info', 
-                      'preserveNullAndEmptyArrays': true
+                    $unwind: {
+                      path: '$topic_info', 
+                      preserveNullAndEmptyArrays: true
                     }
                   }
             ])

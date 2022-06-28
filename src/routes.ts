@@ -61,7 +61,7 @@ routes.get("/getQuizzes", auth, QuizController.findAll)
 routes.post("/getQuiz", auth, QuizController.findOne)
 routes.put("/updateQuiz", auth, QuizController.update)
 routes.delete("/deleteQuiz", auth, QuizController.delete)
-routes.post("/finishQuiz", QuizController.finishQuiz)
+routes.post("/finishQuiz", auth, QuizController.finishQuiz)
 
 // Rotas de Enems
 routes.post("/createEnem", auth, EnemController.create)
@@ -77,7 +77,7 @@ routes.post("/getLesson", auth, LessonController.findOne)
 routes.post("/getLessonsByTopic", auth, LessonController.findByTopic)
 routes.put("/updateLesson", auth, LessonController.update)
 routes.delete("/deleteLesson", auth, LessonController.delete)
-routes.post("/lessonViewned", LessonController.lessonViewned)
+routes.post("/lessonViewned", auth ,LessonController.lessonViewned)
 
 // Rotas de Matérias
 routes.post("/createSubject", auth, SubjectController.create)
