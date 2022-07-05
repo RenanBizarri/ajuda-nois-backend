@@ -33,7 +33,7 @@ routes.get("/changePassword/:reset_token", UserController.verifyResetToken)
 routes.post("/addPomodoro", auth, UserController.addPomodoro)
 routes.post("/dashboard", auth, UserController.dashboard)
 routes.post("/updateUser", auth, UserController.updateUser)
-routes.post("/updateXp", UserController.updateUserTest)
+routes.get("/getTeacher", auth, UserController.getTeacher)
 
 // Rotas de conquistas
 routes.post("/createAchievement", auth, AchievementController.create)

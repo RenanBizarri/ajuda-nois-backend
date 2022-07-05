@@ -8,6 +8,7 @@ import Common from "../Common";
 import Subject from "../models/SubjectModel";
 import StudyPlan from "../models/StudyPlanModel";
 import Tip from "../models/TipModel";
+import { ObjectId } from "mongodb";
 
 const lvl = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 const xp = [30, 90, 270, 650, 1400, 2300, 3400, 4800, 6400, 8500]
@@ -759,21 +760,65 @@ class UserController{
         return handlerXp(user, experience)
     }
 
-    async updateUserTest(req: any, res: any){
+    async getTeacher(req: any, res: any){
         try{
-            const {
-                user_id,
-                xp
-            } = req.body
+            const user_id = req.body.user_id;
 
+            let teacher = await User.aggregate([
+                {
+                    $lookup: {
+                        from: "subjects",
+                        localField: "_id",
+                        foreignField: "user_id",
+                        as: "subject_info"
+                    }
+                },
+                {
+                    $match: {
+                        activated: true,
+                        usertype: {$in: ["teacher", "admin"]},
+                        _id: new ObjectId(user_id)
+                    }
+                }
+            ])
+    
+            let mathematics: any[] = [], languages: any[] = [], human_sciences: any[] = [], natural_sciences: any[] = []
+    
+            if(teacher){
+                if(teacher[0].subject_info){
+                    teacher[0].subject_info.forEach((subject: any): any => {
+                        switch(subject.area){
+                            case "languages":
+                                languages.push(subject);
+                                break;
+                            case "mathematics":
+                                mathematics.push(subject);
+                                break;
+                            case "natural_sciences":
+                                natural_sciences.push(subject);
+                                break;
+                            case "human_sciences":
+                                human_sciences.push(subject);
+                                break;
+                        }
+                    })
+                }
+            }
 
-            const user = await User.findById(user_id)
-            const achievement = await handlerXp(user, xp)
-
-            return res.status(200).json({user, achievement})
+            return res.status(200).json({
+                teacher,
+                mathematics,
+                languages,
+                natural_sciences,
+                human_sciences
+            })
         }catch(error: any){
-            return error
+            console.log("Error: " + error);
+            return res.status(401).json({
+                error: error.message
+            });
         }
+        
     }
 }
 
