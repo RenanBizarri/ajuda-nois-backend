@@ -760,7 +760,7 @@ class UserController{
         return handlerXp(user, experience)
     }
 
-    async getTeacher(req: any, res: any){
+    async getUser(req: any, res: any){
         try{
             const user_id = req.body.user_id;
 

@@ -189,6 +189,7 @@ async function insertOrUpdateStudentsTemplate(base64: string, mockExam: any, sub
 
 function errorHub(error_flag: number, error_info: any, invalid_emails: Array<string>){
     let error_message = ""
+    let status = 400
     switch(error_flag){
         case -1:
             error_message = `Simulado criado com sucesso, mas os seguintes emails ${invalid_emails} não foram achados no sistema, Verifique novamente e tente atualizar o simulado para adicionar os gabaritos deles novamente`
@@ -200,9 +201,11 @@ function errorHub(error_flag: number, error_info: any, invalid_emails: Array<str
             error_message = "Gabarito oficial incompleto"
             break
         case 3:
+            status = 200
             error_message = `A resposta da questão ${error_info['question']} do ${error_info['email']} não é valida, use somente as letra de A a E para o gabarito ou deixe em branco caso não tenha sido respondida`
             break
         case 4:
+            status = 200
             error_message = `O gabarito do estudante ${error_info['email']} não possui 185 questões, possui ${error_info['quantity']}`
             break
         case 5:
@@ -219,7 +222,7 @@ function errorHub(error_flag: number, error_info: any, invalid_emails: Array<str
             break
     }
 
-    return error_message
+    return {status, error_message}
 }
 
 async function mockExamAchievement(user: any, humanScore: number, natureScore: number, languageScore: number, mathScore: number) {
@@ -350,10 +353,10 @@ class MockExamController {
             }
 
             if(error_flag != 0){
-                const error_message = errorHub(error_flag, error_info, invalid_emails)
+                const error_data = errorHub(error_flag, error_info, invalid_emails)
 
-                return res.status(400).json({
-                    error: error_message
+                return res.status(error_data.status).json({
+                    error: error_data.error_message
                 })
             }else{
 
@@ -453,10 +456,10 @@ class MockExamController {
             }
 
             if(errorFlag != 0){
-                const error_message = errorHub(errorFlag, errorInfo, invalidEmails)
+                const error_data = errorHub(errorFlag, errorInfo, invalidEmails)
 
-                return res.status(400).json({
-                    error: error_message
+                return res.status(error_data.status).json({
+                    error: error_data.error_message
                 })
             }else{
                 await mockExam.save()
