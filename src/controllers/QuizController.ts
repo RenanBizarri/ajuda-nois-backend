@@ -270,6 +270,7 @@ class QuizController {
                 {
                     "$project": {
                       "_id": 1,
+                      "name": 1,
                       "topic_info._id": 1,
                       "topic_info.name": 1,
                       "topic_info.subject_id": 1,
@@ -285,7 +286,7 @@ class QuizController {
                     }
                 }
             ])
-            return res.status(200).json(quiz)
+            return res.status(200).json(quiz[0])
         }catch(error: any){
             console.log("Error: " + error);
             return res.status(401).json({
