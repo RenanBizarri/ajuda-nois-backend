@@ -266,7 +266,19 @@ class QuizController {
                         foreignField: "_id",
                         as: "questions_info"
                     }
-                }, 
+                },
+                {
+                    "$project": {
+                      "_id": 1,
+                      "topic_info._id": 1,
+                      "topic_info.name": 1,
+                      "topic_info.subject_id": 1,
+                      "questions_info._id": 1,
+                      "questions_info.name": 1,
+                      "questions_info.question": 1,
+                      "questions_info.alternatives": 1
+                    }
+                },
                 {
                     $match: {
                         _id: new ObjectId(quiz_id)
