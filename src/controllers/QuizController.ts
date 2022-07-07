@@ -260,6 +260,14 @@ class QuizController {
                     }
                 },
                 {
+                    $lookup: {
+                        from: "questions",
+                        localField: "questions_ids",
+                        foreignField: "_id",
+                        as: "questions_info"
+                    }
+                }, 
+                {
                     $match: {
                         _id: new ObjectId(quiz_id)
                     }
