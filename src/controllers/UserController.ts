@@ -80,7 +80,7 @@ async function levelUpAchievement(user: any){
 
 async function pomodoroAchievement(user: any){
     try{
-        let achievements = await Common.findAchievementMissing(user, ["pomodoro_type"])
+        let achievements = await Common.findAchievementMissing(user, ["pomodoro_time"])
         let achievementsGained: any[] = [], experience: number = 0
 
         if(achievements.length > 0){
