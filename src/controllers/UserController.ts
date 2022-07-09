@@ -80,7 +80,7 @@ async function levelUpAchievement(user: any){
 
 async function pomodoroAchievement(user: any){
     try{
-        let achievements = await Common.findAchievementMissing(user, ["pomodoro"])
+        let achievements = await Common.findAchievementMissing(user, ["pomodoro_type"])
         let achievementsGained: any[] = [], experience: number = 0
 
         if(achievements.length > 0){
@@ -430,7 +430,6 @@ class UserController{
                     ])
 
                     response = {
-                        user,
                         subject,
                         students
                     }
