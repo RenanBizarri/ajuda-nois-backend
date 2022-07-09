@@ -10,6 +10,7 @@ import StudyPlan from "../models/StudyPlanModel";
 import Tip from "../models/TipModel";
 import { ObjectId } from "mongodb";
 import Topic from "../models/TopicModel";
+import Quiz from "../models/QuizModel";
 
 const lvl = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 const xp = [30, 90, 270, 650, 1400, 2300, 3400, 4800, 6400, 8500]
@@ -404,34 +405,61 @@ class UserController{
                 case "teacher":
                     const subject = await Subject.find({user_id})
                     
-                    const students = await User.aggregate([
+                    const students = await User.find({
+                        usertype: "student",
+                        activated: true
+                    }, "username email mock_exams quiz_score")
+
+                    const mockExams = await MockExam.find({}, "date")
+
+                    const quiz = await Quiz.aggregate([
                         {
                             $lookup: {
-                                from: "quizzes",
-                                localField: "quiz_score.quiz_id",
-                                foreignField: "_id",
-                                as: "quiz_info"
+                              from: 'topics', 
+                              localField: 'topic_id', 
+                              foreignField: '_id', 
+                              as: 'topic_info'
+                            }
+                        }, 
+                        {
+                            $unwind: {
+                            path: '$topic_info', 
+                            preserveNullAndEmptyArrays: true
                             }
                         },
                         {
                             $lookup: {
-                                from: "mock_exams",
-                                localField: "mock_exams.mock_exam_id",
-                                foreignField: "_id",
-                                as: "mock_exams_info"
+                              from: 'subjects', 
+                              localField: 'topic_info.subject_id', 
+                              foreignField: '_id', 
+                              as: 'subject_info'
+                            }
+                        }, 
+                        {
+                            $unwind: {
+                            path: '$subject_info', 
+                            preserveNullAndEmptyArrays: true
                             }
                         },
                         {
-                            $match: {
-                                activated: true,
-                                usertype: "student"
+                            $project: {
+                                "_id": 1,
+                                "name": 1,
+                                "topic_info._id": 1,
+                                "topic_info.name": 1,
+                                "subject_info._id": 1,
+                                "subject_info.name": 1,
+                                "subject_info.area": 1,
                             }
                         }
                     ])
+                
 
                     response = {
                         subject,
-                        students
+                        students,
+                        mockExams,
+                        quiz
                     }
 
                     return res.status(200).json(response)
@@ -444,24 +472,6 @@ class UserController{
                                 localField: "mock_exams.mock_exam_id",
                                 foreignField: "_id",
                                 as: "mock_exams_info"
-                            }
-                        },
-                        {
-                            $lookup: {
-                                from: "study_plans",
-                                let: {id: "$user_id", firstDay, lastDay},
-                                pipeline: [{
-                                    $match: {
-                                        $expr: {
-                                            $and: [
-                                                {$eq: ["$$id", "$user_id"]},
-                                                {$gte: ["$date", "$$firstDay"]},
-                                                {$lte: ["$date", "$$lastDay"]}
-                                            ]
-                                        }
-                                    }
-                                }],
-                                as: "study_plans_info"
                             }
                         },
                         {

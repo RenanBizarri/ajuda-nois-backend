@@ -262,11 +262,11 @@ class TopicController {
                 topic_completed === topic_id
             })
 
-            if(achievements.length > 0 && alreadyCompleted.length === 0){
+            if(alreadyCompleted.length === 0){
                 const topics: any[] = await findLessonsAndQuizzes(topic_id!)
                 let flag: boolean = true
 
-                for(let lesson_viewed of user.lesson_viewed){
+                for(let lesson_viewed of user.lessons_viewed){
                     const filter = topics[0].lessons.filter((lesson: any): any => {
                         lesson._id === lesson_viewed.lesson_id
                     })
@@ -289,59 +289,62 @@ class TopicController {
 
                     if(flag){
                         user.topics_completed.push(topic_id)
-                        const subject_area = topics[0].subject_info.area
-                        const adiquired = new Date().toISOString().substring(0, 10)
+                        
+                        if(achievements.length > 0){
+                            const subject_area = topics[0].subject_info.area
+                            const adiquired = new Date().toISOString().substring(0, 10)
 
-                        let area_topics = 0
-                        const total_topics = user.topics_completed.length
+                            let area_topics = 0
+                            const total_topics = user.topics_completed.length
 
-                        const completedTopics = await Topic.aggregate([
-                            {
-                                $lookup: {
-                                  from: 'subjects', 
-                                  localField: 'subject_id', 
-                                  foreignField: '_id', 
-                                  as: 'subject_info'
-                                }
-                            }, 
-                            {
-                                $unwind: {
-                                  path: '$subject_info', 
-                                  preserveNullAndEmptyArrays: true
-                                }
-                            },
-                            {
-                                $match: {
-                                    _id: {
-                                        $in: user.topics_completed
+                            const completedTopics = await Topic.aggregate([
+                                {
+                                    $lookup: {
+                                    from: 'subjects', 
+                                    localField: 'subject_id', 
+                                    foreignField: '_id', 
+                                    as: 'subject_info'
+                                    }
+                                }, 
+                                {
+                                    $unwind: {
+                                    path: '$subject_info', 
+                                    preserveNullAndEmptyArrays: true
+                                    }
+                                },
+                                {
+                                    $match: {
+                                        _id: {
+                                            $in: user.topics_completed
+                                        }
                                     }
                                 }
-                            }
-                        ])
+                            ])
 
-                        completedTopics.forEach((completedTopic: any) => {
-                            if(completedTopic.subject_info.area === subject_area) area_topics++
-                        })
+                            completedTopics.forEach((completedTopic: any) => {
+                                if(completedTopic.subject_info.area === subject_area) area_topics++
+                            })
 
-                        achievements.forEach((achievement: any): any => {
-                            const newAchievement = {
-                                achievement_id: achievement._id,
-                                adiquired
-                            }
-                            if(achievement.area === "general"){
-                                if(total_topics >= achievement.quantity){
-                                    user.achievements.push(newAchievement)
-                                    achievementsGained.push(achievement)
-                                    experience += achievement.experience
+                            achievements.forEach((achievement: any): any => {
+                                const newAchievement = {
+                                    achievement_id: achievement._id,
+                                    adiquired
                                 }
-                            }else if(achievement.area === subject_area){
-                                if(area_topics >= achievement.quantity){
-                                    user.achievements.push(newAchievement)
-                                    achievementsGained.push(achievement)
-                                    experience += achievement.experience
+                                if(achievement.area === "general"){
+                                    if(total_topics >= achievement.quantity){
+                                        user.achievements.push(newAchievement)
+                                        achievementsGained.push(achievement)
+                                        experience += achievement.experience
+                                    }
+                                }else if(achievement.area === subject_area){
+                                    if(area_topics >= achievement.quantity){
+                                        user.achievements.push(newAchievement)
+                                        achievementsGained.push(achievement)
+                                        experience += achievement.experience
+                                    }
                                 }
-                            }
-                        })
+                            })
+                        }
 
                         await user.save()
                     }

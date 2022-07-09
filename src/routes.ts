@@ -77,7 +77,7 @@ routes.post("/getLesson", auth, LessonController.findOne)
 routes.post("/getLessonsByTopic", auth, LessonController.findByTopic)
 routes.put("/updateLesson", auth, LessonController.update)
 routes.delete("/deleteLesson", auth, LessonController.delete)
-routes.post("/lessonViewned", auth ,LessonController.lessonViewned)
+routes.post("/lessonViewned", auth, LessonController.lessonViewned)
 
 // Rotas de Matérias
 routes.post("/createSubject", auth, SubjectController.create)
