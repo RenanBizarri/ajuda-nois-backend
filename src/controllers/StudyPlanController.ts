@@ -101,8 +101,12 @@ class StudyPlanController {
 
     async findAll(req: any, res: any){
         try{
-            const user_id = req.body
-            const studyPlan = await StudyPlan.find({user_id})
+            const {
+                user_id,
+                begin,
+                end
+            } = req.body
+            const studyPlan = await StudyPlan.find({user_id, date: {$gte: begin, $lte: end}})
 
             return res.status(200).json(studyPlan)
         }catch(error: any){

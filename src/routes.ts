@@ -101,7 +101,7 @@ routes.delete("/deleteMockExam", auth, MockExamController.delete)
 
 // Rotas do Plano de Estudo
 routes.post("/createStudyPlan", auth, StudyPlanController.create)
-routes.get("/getStudyPlans", auth, StudyPlanController.findAll)
+routes.post("/getStudyPlans", auth, StudyPlanController.findAll)
 routes.put("/updateStudyPlan", auth, StudyPlanController.update)
 routes.delete("/deleteStudyPlan", auth, StudyPlanController.delete)
 
