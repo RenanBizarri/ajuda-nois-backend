@@ -375,13 +375,6 @@ class UserController{
             
             const user = await User.findById(user_id)
 
-            const date = new Date()
-            const first = date.getDate() - date.getDay()
-            const last = first + 6
-
-            const firstDay = new Date(date.setDate(first)).toISOString()
-            const lastDay = new Date(date.setDate(last)).toISOString()
-
             let response = {}
 
             switch(user?.usertype){
@@ -390,7 +383,24 @@ class UserController{
                     const allTeachers = await User.count({usertype: {$in: ["admin", "teacher"]}})
                     const allMockExam = await MockExam.count()
                     const newStudents = await User.find({usertype: "student", activated: true})
-                    const newTeachers = await User.find({usertype: {$in: ["admin", "teacher"]}, activated: true})
+                    const newTeachers = await User.aggregate([
+                        {
+                            $lookup: {
+                                from: 'subjects', 
+                                localField: '_id', 
+                                foreignField: 'user_id', 
+                                as: 'subjects_info'
+                            }
+                        },
+                        {
+                            $match: {
+                                usertype: {
+                                    $in: ["admin", "teacher"]
+                                },
+                                activated: true
+                            }
+                        }
+                    ])
 
                     response = {
                         allStudents,
