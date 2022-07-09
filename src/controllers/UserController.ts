@@ -403,16 +403,16 @@ class UserController{
                     return res.status(200).json(response)
                     break
                 case "teacher":
-                    const subject = await Subject.find({user_id})
+                    const subjects = await Subject.find({user_id})
                     
-                    const students = await User.find({
+                    const studentsAux = await User.find({
                         usertype: "student",
                         activated: true
                     }, "username email mock_exams quiz_score")
 
                     const mockExams = await MockExam.find({}, "date")
 
-                    const quiz = await Quiz.aggregate([
+                    const quizzes = await Quiz.aggregate([
                         {
                             $lookup: {
                               from: 'topics', 
@@ -453,13 +453,53 @@ class UserController{
                             }
                         }
                     ])
-                
+
+                    let students: any[] = []
+                    
+                    studentsAux.forEach(function(student: any, index: number) {
+                        let mock_exams: any = []
+                        student.mock_exams.forEach((mock_exam_aux: any): any => {
+                            const mock_exam = mock_exam_aux
+                            const isDone = mockExams.filter((element: any): any => {
+                                return element._id.toString() === mock_exam_aux.mock_exam_id.toString()
+                            })
+                            if(isDone.length > 0) mock_exam.date = isDone[0].date
+                            mock_exams.push(mock_exam)
+                        })
+
+                        let quizzes_done: any[] = []
+                        student.quiz_score.forEach((quiz: any): any => {
+                            const isDone = quizzes.filter((element: any): any => {
+                                return element._id.toString() === quiz.quiz_id.toString()
+                            })
+                            if(isDone.length > 0){
+                                const isSubject = subjects.filter((element: any): any => {
+                                    return element.name === isDone[0].subject_info.name
+                                })
+                                if(isSubject.length > 0) {
+                                    quizzes_done.push({
+                                        _id: isDone[0]._id,
+                                        name: isDone[0].name,
+                                        subject_id: isDone[0].subject_info._id,
+                                        subject: isDone[0].subject_info.name,
+                                        score: quiz.score
+                                    })
+                                }
+                            }
+                        })
+
+                        students.push({
+                            _id: student._id,
+                            username: student.username,
+                            email: student.email,
+                            mock_exams,
+                            quizzes_done
+                        })
+                    }) 
 
                     response = {
-                        subject,
-                        students,
-                        mockExams,
-                        quiz
+                        subjects,
+                        students
                     }
 
                     return res.status(200).json(response)

@@ -366,8 +366,6 @@ class QuizController {
                         }
                     ])
 
-                    console.log(quiz)
-
                     if(quiz[0]){
                         if(quiz[0].questions_info){
                             let i = 0
