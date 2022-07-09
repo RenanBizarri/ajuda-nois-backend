@@ -268,7 +268,7 @@ class QuizController {
                     }
                 },
                 {
-                    "$project": {
+                    $project: {
                       "_id": 1,
                       "name": 1,
                       "topic_info._id": 1,

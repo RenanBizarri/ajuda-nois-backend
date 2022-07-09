@@ -9,6 +9,7 @@ import Subject from "../models/SubjectModel";
 import StudyPlan from "../models/StudyPlanModel";
 import Tip from "../models/TipModel";
 import { ObjectId } from "mongodb";
+import Topic from "../models/TopicModel";
 
 const lvl = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 const xp = [30, 90, 270, 650, 1400, 2300, 3400, 4800, 6400, 8500]
@@ -440,14 +441,6 @@ class UserController{
                     const student = await User.aggregate([
                         {
                             $lookup: {
-                                from: "quizzes",
-                                localField: "quiz_score.quiz_id",
-                                foreignField: "_id",
-                                as: "quiz_info"
-                            }
-                        },
-                        {
-                            $lookup: {
                                 from: "mock_exams",
                                 localField: "mock_exams.mock_exam_id",
                                 foreignField: "_id",
@@ -457,16 +450,14 @@ class UserController{
                         {
                             $lookup: {
                                 from: "study_plans",
-                                let: {"_id": "$user_id"},
+                                let: {id: "$user_id", firstDay, lastDay},
                                 pipeline: [{
                                     $match: {
                                         $expr: {
                                             $and: [
-                                                {
-                                                    $eq: ["$_id", "$$user_id"],
-                                                    $gte: ["$$date", firstDay],
-                                                    $lit: ["$$date", lastDay]
-                                                }
+                                                {$eq: ["$$id", "$user_id"]},
+                                                {$gte: ["$date", "$$firstDay"]},
+                                                {$lte: ["$date", "$$lastDay"]}
                                             ]
                                         }
                                     }
@@ -476,14 +467,71 @@ class UserController{
                         },
                         {
                             $match: {
-                                _id: user_id,
+                                _id: new ObjectId(user_id),
                                 usertype: "student",
                             }
                         }
                     ])
 
+                    const topics = await Topic.aggregate([
+                        {
+                            $lookup: {
+                              from: 'subjects', 
+                              localField: 'subject_id', 
+                              foreignField: '_id', 
+                              as: 'subject_info'
+                            }
+                        }, 
+                        {
+                            $unwind: {
+                              path: '$subject_info', 
+                              preserveNullAndEmptyArrays: true
+                            }
+                        }  
+                    ])
+
+                    const topicsGraph = {
+                        human_completed: 0,
+                        human_total: 0,
+                        natural_completed: 0,
+                        natural_total: 0,
+                        languages_completed: 0,
+                        languages_total: 0,
+                        maths_completed: 0,
+                        maths_total: 0
+                    }
+
+                    topics.forEach((topic: any): any => {
+                        let flag: boolean = false;
+                        for(let topic_completed of student[0].topics_completed){
+                            if(topic_completed.toString() == topic._id.toString()){ 
+                                flag = true
+                                break
+                            }
+                        }
+                        switch(topic.subject_info.area){
+                            case "languages":
+                                topicsGraph.languages_total++
+                                if(flag)topicsGraph.languages_completed++
+                                break;
+                            case "mathematics":
+                                topicsGraph.maths_total++
+                                if(flag)topicsGraph.maths_completed++
+                                break;
+                            case "natural_sciences":
+                                topicsGraph.natural_total++
+                                if(flag)topicsGraph.natural_completed++
+                                break;
+                            case "human_sciences":
+                                topicsGraph.human_total++
+                                if(flag)topicsGraph.human_completed++
+                                break;
+                        }
+                    })
+
                     response = {
-                        student
+                        student,
+                        topicsGraph
                     }
 
                     return res.status(200).json(response)
