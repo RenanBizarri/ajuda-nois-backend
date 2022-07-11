@@ -7,7 +7,8 @@ export interface IStudyPlan {
         topic_id: mongoose.Types.ObjectId,
         begin: string,
         end: string,
-        description?: string
+        description?: string,
+        status: string,
     }],
     date: string
 }
@@ -39,6 +40,11 @@ export const StudyPlanSchema: mongoose.Schema = new mongoose.Schema<IStudyPlan>(
         },
         description: {
             type: String
+        },
+        status: {
+            type: String,
+            enum: ["planned", "completed", "late"],
+            required: true
         }
     }],
     date: {

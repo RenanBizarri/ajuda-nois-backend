@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import StudyPlan from "../models/StudyPlanModel";
 
 class StudyPlanController {
@@ -106,7 +107,58 @@ class StudyPlanController {
                 begin,
                 end
             } = req.body
-            const studyPlan = await StudyPlan.find({user_id, date: {$gte: begin, $lte: end}})
+            const studyPlan = await StudyPlan.aggregate([
+                {
+                    $unwind: {
+                      path: '$studies', 
+                      preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "topics",
+                        localField: "studies.topic_id",
+                        foreignField: "_id",
+                        as: "studies.topic_info"
+                    }
+                },
+                {
+                    $addFields: {
+                      "studies.topic_info": {
+                        $arrayElemAt: ["$studies.topic_info", 0]
+                      }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "subjects",
+                        localField: "studies.subject_id",
+                        foreignField: "_id",
+                        as: "studies.subject_info"
+                    }
+                },
+                {
+                    $addFields: {
+                      "studies.subject_info": {
+                        $arrayElemAt: ["$studies.subject_info", 0]
+                      }
+                    }
+                },
+                {
+                    $match: {
+                        user_id: new ObjectId(user_id), 
+                        date: {$gte: begin, $lte: end}
+                    }   
+                },
+                {
+                    $group: {
+                      _id: "$_id",
+                      studies: { $push: "$studies" },
+                      user_id: { $first: "$user_id" },
+                      date: { $first: "$date" },
+                    }
+                }
+            ])
 
             return res.status(200).json(studyPlan)
         }catch(error: any){
