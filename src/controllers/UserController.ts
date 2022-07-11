@@ -374,6 +374,7 @@ class UserController{
             } = req.body
             
             const user = await User.findById(user_id)
+            // "$2b$10$M56uMlHKaSDZSXShLkDVyukb0QxNdkquYsWQ2Bra4kOPwcQGPSi0u"
 
             let response = {}
 
@@ -381,8 +382,11 @@ class UserController{
                 case "admin":
                     const allStudents = await User.count({usertype: "student"})
                     const allTeachers = await User.count({usertype: {$in: ["admin", "teacher"]}})
-                    const allMockExam = await MockExam.count()
-                    const newStudents = await User.find({usertype: "student", activated: true})
+                    const mockExamsAux = await MockExam.find({})
+                    const newStudentsAux = await User.find({
+                        usertype: "student",
+                        activated: true
+                    }, "username email mock_exams")
                     const newTeachers = await User.aggregate([
                         {
                             $lookup: {
@@ -401,6 +405,37 @@ class UserController{
                             }
                         }
                     ])
+
+                    const allMockExam = mockExamsAux.length;
+
+                    let newStudents: any[] = []
+                    
+                    newStudentsAux.forEach(function(student: any, index: number) {
+                        let mock_exams: any = []
+                        student.mock_exams.forEach((mock_exam_aux: any): any => {
+                            let mock_exam = {
+                                mock_exam_id: mock_exam_aux._id,
+                                languages_score: mock_exam_aux.languages_score,
+                                mathematics_score: mock_exam_aux.mathematics_score,
+                                natural_sciences_score: mock_exam_aux.natural_sciences_score,
+                                human_sciences_score: mock_exam_aux.human_sciences_score,
+                                date: ""
+                            }
+                            const isDone = mockExamsAux.filter((element: any): any => {
+                                return element._id.toString() === mock_exam_aux.mock_exam_id.toString()
+                            })
+                            if(isDone.length > 0) mock_exam.date = isDone[0].date
+                            console.log(mock_exam)
+                            mock_exams.push(mock_exam)
+                        })
+
+                        newStudents.push({
+                            _id: student._id,
+                            username: student.username,
+                            email: student.email,
+                            mock_exams,
+                        })
+                    })
 
                     response = {
                         allStudents,
