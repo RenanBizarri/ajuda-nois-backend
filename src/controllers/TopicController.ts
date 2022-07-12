@@ -266,33 +266,25 @@ class TopicController {
                 const topics: any[] = await findLessonsAndQuizzes(topic_id!)
                 let flag: boolean = true
 
-                if(topics[0].lessons.length > 0){
-                    for(let lesson_viewed of user.lessons_viewed){
-                        const filter = topics[0].lessons.filter((lesson: any): any => {
-                            return lesson._id.toString() === lesson_viewed.lesson_id.toString()
+                for(let lesson_viewed of user.lessons_viewed){
+                    const filter = topics[0].lessons.filter((lesson: any): any => {
+                        return lesson._id.toString() === lesson_viewed.lesson_id.toString()
+                    })
+                    if(!filter){
+                        flag = false
+                        break
+                    }
+                }
+
+                if(flag){
+                    for(let quiz_done of user.quiz_score){
+                        const filter = topics[0].quizzes.filter((quiz: any): any => {
+                            return quiz._id.toString() === quiz_done.quiz_id.toString()
                         })
                         if(!filter){
                             flag = false
                             break
                         }
-                    }
-                }else{
-                    if(lesson_id) flag = false
-                }
-
-                if(flag){
-                    if(topics[0].quizzes.length > 0){
-                        for(let quiz_done of user.quiz_score){
-                            const filter = topics[0].quizzes.filter((quiz: any): any => {
-                                return quiz._id.toString() === quiz_done.quiz_id.toString()
-                            })
-                            if(!filter){
-                                flag = false
-                                break
-                            }
-                        }
-                    }else{
-                        if(quiz_id) flag = false
                     }
 
                     if(flag){
