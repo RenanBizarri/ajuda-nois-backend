@@ -569,7 +569,7 @@ class UserController{
                                 mock_exam.correct_answers_per_subject = correct_answers_per_subject
                                 mock_exam.date = isDone[0].date
                             }
-                            mock_exams.push(mock_exam)
+                            if(mock_exam.date !== "")mock_exams.push(mock_exam)
                         })
 
                         let quizzes_done: any[] = []
