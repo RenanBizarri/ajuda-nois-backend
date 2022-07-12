@@ -462,6 +462,7 @@ class UserController{
                             $project: {
                                 "_id": 1,
                                 "date": 1,
+                                "template": 1,
                                 "questions_subject": 1,
                                 "questions_correct_answers": 1,
                                 "users._id": 1,
@@ -536,18 +537,38 @@ class UserController{
                     studentsAux.forEach(function(student: any, index: number) {
                         let mock_exams: any = []
                         student.mock_exams.forEach((mock_exam_aux: any): any => {
+                            let correct_answers_per_subject: any[] = []
+
+                            subjects.forEach((subject: any): any => {
+                                correct_answers_per_subject.push({
+                                    subject_id: subject._id,
+                                    correct_answers: 0
+                                })
+                            })
+
                             let mock_exam = {
                                 mock_exam_id: mock_exam_aux._id,
                                 languages_score: mock_exam_aux.languages_score,
                                 mathematics_score: mock_exam_aux.mathematics_score,
                                 natural_sciences_score: mock_exam_aux.natural_sciences_score,
                                 human_sciences_score: mock_exam_aux.human_sciences_score,
-                                date: ""
+                                date: "",
+                                correct_answers_per_subject
                             }
                             const isDone = mockExams.filter((element: any): any => {
                                 return element._id.toString() === mock_exam_aux.mock_exam_id.toString()
                             })
-                            if(isDone.length > 0) mock_exam.date = isDone[0].date
+                            if(isDone.length > 0){ 
+                                for(let i = 0; i < 185; i++){
+                                    correct_answers_per_subject.forEach((element: any, index: number): any => {
+                                        if(element.subject_id.toString() === isDone[0].questions_subject[i].toString()){
+                                            if(isDone[0].template[i] === mock_exam_aux.template[i]) correct_answers_per_subject[index].correct_answers++
+                                        }
+                                    })
+                                }
+                                mock_exam.correct_answers_per_subject = correct_answers_per_subject
+                                mock_exam.date = isDone[0].date
+                            }
                             mock_exams.push(mock_exam)
                         })
 
