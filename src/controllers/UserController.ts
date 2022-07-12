@@ -394,12 +394,14 @@ class UserController{
                             $project: {
                                 "_id": 1,
                                 "date": 1,
-                                "questions_subject": 1,
-                                "questions_correct_answers": 1,
                                 "users._id": 1,
                                 "users.username": 1,
                                 "users.email": 1,
-                                "users.mock_exams": 1
+                                "users.mock_exams.mock_exam_id": 1,
+                                "users.mock_exams.languages_score": 1,
+                                "users.mock_exams.mathematics_score": 1,
+                                "users.mock_exams.natural_sciences_score": 1,
+                                "users.mock_exams.human_sciences_score": 1
                             }
                         }
                     ])
