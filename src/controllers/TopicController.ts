@@ -259,7 +259,7 @@ class TopicController {
             const topic_id = lesson_id ? lesson?.topic_id : quiz?.topic_id
 
             const alreadyCompleted: any[] = user.topics_completed.filter((topic_completed: any): any => {
-                topic_completed === topic_id
+                return topic_completed.toString() === topic_id.toString
             })
 
             if(alreadyCompleted.length === 0){

@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb";
+import mongoose from "mongoose";
 import Common from "../Common";
 import Quiz from "../models/QuizModel";
 import User from "../models/UserModel";
@@ -11,7 +12,6 @@ async function quizAchievement(user: any, quiz: any) {
         let achievementsGained: any[] = [], experience: number = 0
 
         if(achievements.length > 0){
-            console.log(quiz)
             const subject_area = quiz.subject_info.area
             const adiquired = new Date().toISOString().substring(0, 10)
             let quizzes_id: any[] = []
@@ -295,115 +295,143 @@ class QuizController {
         }
     }
 
-    async finishQuiz(req: any, res: any){
+    async doingQuiz(req: any, res: any){
         try{
             const {
                 user_id,
                 quiz_id,
-                answers
+                question_id,
+                answer
             } = req.body
 
             let user = await User.findById(user_id)
             let achievements: any[] = []
 
             if(user){
-                let quizFlag: boolean = false
-
-                if(user.quiz_score){
-                    user.quiz_score.forEach(function (quiz) {
-                        if(quiz.quiz_id == quiz_id) quizFlag = true
-                    })
-                }
-
-                if(quizFlag){
-                    return res.status(200).json({
-                        message: "Quiz já realizado"
-                    });
-                }else{
-                    const date: string = new Date().toISOString().substring(0, 10)
-                    let score = 0;
-                    const quiz = await Quiz.aggregate([
-                        {
-                            $lookup: {
-                                from: "topics",
-                                localField: "topic_id",
-                                foreignField: "_id",
-                                as: "topic_info"
-                            }
-                        },
-                        {
-                            $unwind: {
-                              path: '$topic_info', 
-                              preserveNullAndEmptyArrays: true
-                            }
-                        },
-                        {
-                            $lookup: {
-                                from: "subjects",
-                                localField: "topic_info.subject_id",
-                                foreignField: "_id",
-                                as: "subject_info"
-                            }
-                        },
-                        {
-                            $unwind: {
-                              path: '$subject_info', 
-                              preserveNullAndEmptyArrays: true
-                            }
-                        },
-                        {
-                            $lookup: {
-                                from: "questions",
-                                localField: "questions_ids",
-                                foreignField: "_id",
-                                as: "questions_info"
-                            }
-                        },
-                        {
-                            $match: {
-                                _id: new ObjectId(quiz_id),
-                            }
+                const quiz = await Quiz.aggregate([
+                    {
+                        $lookup: {
+                            from: "topics",
+                            localField: "topic_id",
+                            foreignField: "_id",
+                            as: "topic_info"
                         }
-                    ])
-
-                    if(quiz[0]){
-                        if(quiz[0].questions_info){
-                            let i = 0
-                            quiz[0].questions_info.forEach(function (question: any) {
-                                if(question.answer == answers[i]) score++;
-                                i++
-                            });
+                    },
+                    {
+                        $unwind: {
+                          path: '$topic_info', 
+                          preserveNullAndEmptyArrays: true
                         }
-                    }else{
-                        return res.status(401).json({
-                            error: "Quiz não encontrado"
+                    },
+                    {
+                        $lookup: {
+                            from: "subjects",
+                            localField: "topic_info.subject_id",
+                            foreignField: "_id",
+                            as: "subject_info"
+                        }
+                    },
+                    {
+                        $unwind: {
+                          path: '$subject_info', 
+                          preserveNullAndEmptyArrays: true
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "questions",
+                            localField: "questions_ids",
+                            foreignField: "_id",
+                            as: "questions_info"
+                        }
+                    },
+                    {
+                        $match: {
+                            _id: new ObjectId(quiz_id),
+                        }
+                    }
+                ])
+
+                if(quiz[0]){
+                    let questionFlag: boolean = false, questions_answered: number = 0, quiz_index: number = -1
+
+                    if(user.quiz_score){
+                        user.quiz_score.forEach(function (quiz: any, index: number): any {
+                            if(quiz.quiz_id == quiz_id){
+                                questions_answered = quiz.questions_ids.length
+                                quiz_index = index
+                                quiz.questions_ids.forEach((question: any): any => {
+                                    if(question.toString() === quiz_id.toString()) questionFlag = true
+                                })
+                            }
+                        })
+                    }
+
+                    if(questions_answered >= quiz[0].questions_ids.length){
+                        return res.status(200).json({
+                            message: "Quiz já realizado"
                         });
                     }
 
-                    const quiz_score = {
-                        quiz_id,
-                        date,
-                        score,
-                        answers
-                    }
-
-                    if(user.quiz_score){
-                        user.quiz_score.push(quiz_score)
+                    if(questionFlag){
+                        return res.status(200).json({
+                            message: "Essa questão já foi respondida nesse quiz"
+                        });
                     }else{
-                        user.quiz_score = [quiz_score]
+                        const date: string = new Date().toISOString().substring(0, 10)
+                        let correct_answer: boolean = false, score: number = 0
+
+                        if(quiz[0].questions_info){
+                            quiz[0].questions_info.forEach(function (question: any) {
+                                if(question._id.toString() == question_id.toString()){
+                                    if(question.answer === answer) correct_answer = true
+                                } 
+                            });
+                        }
+
+    
+                        if(quiz_index === -1){
+                            if(correct_answer) score = 1
+                            const questions_ids: mongoose.Types.ObjectId[] = [question_id]
+                            const answers: string[] = [answer]
+                            const quiz_score = {
+                                quiz_id,
+                                date,
+                                score,
+                                questions_ids,
+                                answers
+                            }
+        
+                            if(user.quiz_score){
+                                user.quiz_score.push(quiz_score)
+                            }else{
+                                user.quiz_score = [quiz_score]
+                            }
+                        }else{
+                            if(user.quiz_score){
+                                score = user.quiz_score[quiz_index].score
+                                if(correct_answer) score++
+                                user.quiz_score[quiz_index].questions_ids.push(question_id)
+                                user.quiz_score[quiz_index].answers.push(answer)
+                            }
+
+                        }
+                        await user.save()
+    
+                        achievements = achievements.concat(await TopicController.topicAchievement(user, null, quiz_id))
+                        achievements = achievements.concat(await quizAchievement(user, quiz[0]))
+    
+                        return res.status(200).json({
+                            message: "Resposta adicionada com sucesso",
+                            score, 
+                            achievements
+                        });
                     }
-                    await user.save()
-
-                    achievements = achievements.concat(await TopicController.topicAchievement(user, null, quiz_id))
-                    achievements = achievements.concat(await quizAchievement(user, quiz[0]))
-
-                    return res.status(200).json({
-                        message: "Quiz salvo",
-                        quiz_score, 
-                        achievements
+                }else{
+                    return res.status(401).json({
+                        error: "Quiz não encontrado"
                     });
                 }
-
             }else{
                 return res.status(401).json({
                     error: "Usuario não encontrado"

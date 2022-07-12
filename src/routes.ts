@@ -61,7 +61,7 @@ routes.get("/getQuizzes", auth, QuizController.findAll)
 routes.post("/getQuiz", auth, QuizController.findOne)
 routes.put("/updateQuiz", auth, QuizController.update)
 routes.delete("/deleteQuiz", auth, QuizController.delete)
-routes.post("/finishQuiz", auth, QuizController.finishQuiz)
+routes.post("/quiz", auth, QuizController.doingQuiz)
 
 // Rotas de Enems
 routes.post("/createEnem", auth, EnemController.create)
