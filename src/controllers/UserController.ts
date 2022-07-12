@@ -12,14 +12,14 @@ import { ObjectId } from "mongodb";
 import Topic from "../models/TopicModel";
 import Quiz from "../models/QuizModel";
 
-const lvl = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-const xp = [30, 90, 270, 650, 1400, 2300, 3400, 4800, 6400, 8500]
+const lvl = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+const xp = [100, 500, 1000, 2000, 3500, 5000, 7500, 10000, 15000, 25000]
 const monthNames = ["January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"];
 
 function generateToken(params = {}){
     return jsonwebtoken.sign(params, process.env.PRIVATE_KEY!.replace(/\\n/gm, '\n') as string,{
-        expiresIn: "30d",
+        expiresIn: "7d",
         algorithm: "RS256"
     });
 }
@@ -255,7 +255,7 @@ class UserController{
                     }).save();
                 }
             }else{
-                const experience = 0, level = 1
+                const experience = 0, level = 0
 
                 // Cria o usuario
                 user = await new User({
@@ -374,7 +374,6 @@ class UserController{
             } = req.body
             
             const user = await User.findById(user_id)
-            // "$2b$10$M56uMlHKaSDZSXShLkDVyukb0QxNdkquYsWQ2Bra4kOPwcQGPSi0u"
 
             let response = {}
 
@@ -382,11 +381,28 @@ class UserController{
                 case "admin":
                     const allStudents = await User.count({usertype: "student"})
                     const allTeachers = await User.count({usertype: {$in: ["admin", "teacher"]}})
-                    const mockExamsAux = await MockExam.find({})
-                    const newStudentsAux = await User.find({
-                        usertype: "student",
-                        activated: true
-                    }, "username email mock_exams")
+                    const allMockExams = await MockExam.aggregate([
+                        {
+                            $lookup: {
+                              from: 'users', 
+                              localField: '_id', 
+                              foreignField: 'mock_exams.mock_exam_id', 
+                              as: 'users'
+                            }
+                        }, 
+                        {
+                            $project: {
+                                "_id": 1,
+                                "date": 1,
+                                "questions_subject": 1,
+                                "questions_correct_answers": 1,
+                                "users._id": 1,
+                                "users.username": 1,
+                                "users.email": 1,
+                                "users.mock_exams": 1
+                            }
+                        }
+                    ])
                     const newTeachers = await User.aggregate([
                         {
                             $lookup: {
@@ -406,42 +422,18 @@ class UserController{
                         }
                     ])
 
-                    const allMockExam = mockExamsAux.length;
-
-                    let newStudents: any[] = []
-                    
-                    newStudentsAux.forEach(function(student: any, index: number) {
-                        let mock_exams: any = []
-                        student.mock_exams.forEach((mock_exam_aux: any): any => {
-                            let mock_exam = {
-                                mock_exam_id: mock_exam_aux._id,
-                                languages_score: mock_exam_aux.languages_score,
-                                mathematics_score: mock_exam_aux.mathematics_score,
-                                natural_sciences_score: mock_exam_aux.natural_sciences_score,
-                                human_sciences_score: mock_exam_aux.human_sciences_score,
-                                date: ""
-                            }
-                            const isDone = mockExamsAux.filter((element: any): any => {
-                                return element._id.toString() === mock_exam_aux.mock_exam_id.toString()
+                    allMockExams.forEach((mock_exam: any): any => {
+                        mock_exam.users.forEach((user: any): any => {
+                            user.mock_exams = user.mock_exams.filter((exam: any): any => {
+                                return exam.mock_exam_id.toString() === mock_exam._id.toString()
                             })
-                            if(isDone.length > 0) mock_exam.date = isDone[0].date
-                            console.log(mock_exam)
-                            mock_exams.push(mock_exam)
-                        })
-
-                        newStudents.push({
-                            _id: student._id,
-                            username: student.username,
-                            email: student.email,
-                            mock_exams,
                         })
                     })
 
                     response = {
                         allStudents,
                         allTeachers,
-                        allMockExam,
-                        newStudents,
+                        allMockExams,
                         newTeachers
                     }
 
@@ -455,7 +447,25 @@ class UserController{
                         activated: true
                     }, "username email mock_exams quiz_score")
 
-                    const mockExams = await MockExam.find({}, "date")
+                    const mockExams = await MockExam.aggregate([
+                        {
+                            $lookup: {
+                              from: 'users', 
+                              localField: '_id', 
+                              foreignField: 'mock_exams.mock_exam_id', 
+                              as: 'users'
+                            }
+                        }, 
+                        {
+                            $project: {
+                                "_id": 1,
+                                "date": 1,
+                                "questions_subject": 1,
+                                "questions_correct_answers": 1,
+                                "users._id": 1,
+                            }
+                        }
+                    ])
 
                     const quizzes = await Quiz.aggregate([
                         {
@@ -500,11 +510,40 @@ class UserController{
                     ])
 
                     let students: any[] = []
+                    let mockExamGraph: any[] = []
+
+                    mockExams.forEach((mock_exam: any): any => {
+                        let mockExamGraphAux: any[] = []
+                        for(let i = 0; i < 185; i++){
+                            const question_subject = subjects.filter((subject: any): any => {
+                                console.log(subject._id)
+                                console.log(mock_exam.questions_subject[i])
+                                return subject._id.toString() === mock_exam.questions_subject[i].toString()
+                            })
+
+                            if(question_subject.length > 0){
+                                mockExamGraphAux.push({
+                                    question_number: i+1,
+                                    subject_id: mock_exam.questions_subject[i],
+                                    correct_answers: mock_exam.questions_correct_answers[i]
+                                })
+                            }
+                        }
+
+                        mockExamGraph.push(mockExamGraphAux)
+                    })
                     
                     studentsAux.forEach(function(student: any, index: number) {
                         let mock_exams: any = []
                         student.mock_exams.forEach((mock_exam_aux: any): any => {
-                            const mock_exam = mock_exam_aux
+                            let mock_exam = {
+                                mock_exam_id: mock_exam_aux._id,
+                                languages_score: mock_exam_aux.languages_score,
+                                mathematics_score: mock_exam_aux.mathematics_score,
+                                natural_sciences_score: mock_exam_aux.natural_sciences_score,
+                                human_sciences_score: mock_exam_aux.human_sciences_score,
+                                date: ""
+                            }
                             const isDone = mockExams.filter((element: any): any => {
                                 return element._id.toString() === mock_exam_aux.mock_exam_id.toString()
                             })
@@ -544,7 +583,8 @@ class UserController{
 
                     response = {
                         subjects,
-                        students
+                        students,
+                        mockExamGraph
                     }
 
                     return res.status(200).json(response)

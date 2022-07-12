@@ -87,103 +87,114 @@ async function insertOrUpdateStudentsTemplate(base64: string, mockExam: any, sub
 
     for(let i = 0; i < sheet_data.length; i++){
         const row: any = sheet_data[i]
-        let student_template: string[] = [], humanScore = 0, natureScore = 0, mathScore = 0, languageScore = 0
-        for(let question in row){
-            const questionNumber = Number(question)
-            if(question != 'Emails' && questionNumber > 0 && questionNumber < 186) {
-                const answer = row[question]
-                if(possibleAnswers.includes(answer)){
-                    student_template.push(answer)
-                    if(template[questionNumber-1] === answer){
-                        switch(subjects_area[questionNumber-1]){
-                            case "human_sciences":
-                                humanScore++
-                                break
-                            case "languages":
-                                languageScore++
-                                break
-                            case "mathematics":
-                                mathScore++
-                                break
-                            case "natural_sciences":
-                                natureScore++
-                                break
-                            default: 
-                                break
-                        }
-                    }
-                }else{
-                    error_flag = 3
-                    error_info['email'] = row.Emails
-                    error_info['question'] = question
-                    break
-                }
+        
+        let student: any = null
+        for(let studentAux of students){
+            if(studentAux.email == row.Emails){
+                student = studentAux
+                break
             }
         }
 
-        console.log(mathScore)
+        // Se não achou o estudante salva para notificar o usuario
+        if(student == null){
+            error_flag = -1
+            invalid_emails.push(row.Emails)
+        }else{
+            let student_template: string[] = [], humanScore = 0, natureScore = 0, mathScore = 0, languageScore = 0, questions_correct_answers = mockExam.questions_correct_answers
 
-        // Se não houver mais de 185 ou menos de 180 questões 
-        if(student_template.length != 185 || error_flag > 0){
-            if(error_flag == 0) error_flag = 4
-            error_info['email'] = row.Emails
-            error_info['quantity'] = student_template.length
-            break
-        }
+            let studentMockExam: any = null
+            if(student.mock_exams){
+                for(let studentMockExamAux of student.mock_exams){
+                    if(studentMockExamAux.mock_exam_id == mockExam._id){
+                        studentMockExam = studentMockExamAux
+                        break
+                    }
+                }
+            }
 
-        let studentFlag = 0
-        for(let student of students){
-            if(student.email == row.Emails){
-                studentFlag = 1
-                if(student.mock_exams){
-                    let mockflag = 0
-                    for(let studentMockExam of student.mock_exams){
-                        if(studentMockExam.mock_exam_id == mockExam._id){
-                            mockflag = 1;
-                            studentMockExam.template = student_template
-                            studentMockExam.human_sciences_score = humanScore
-                            studentMockExam.natural_sciences_score = natureScore
-                            studentMockExam.languages_score = languageScore
-                            studentMockExam.mathematics_score = mathScore
-                            break
+            for(let question in row){
+                const questionNumber = Number(question)
+                if(question != 'Emails' && questionNumber > 0 && questionNumber < 186) {
+                    const answer = row[question]
+                    if(possibleAnswers.includes(answer)){
+                        student_template.push(answer)
+                        if(template[questionNumber-1] === answer){
+                            if(studentMockExam != null){
+                                if(studentMockExam.template[questionNumber-1] !== answer) questions_correct_answers[questionNumber-1]++
+                            }else{
+                                questions_correct_answers[questionNumber-1]++
+                            }
+                            switch(subjects_area[questionNumber-1]){
+                                case "human_sciences":
+                                    humanScore++
+                                    break
+                                case "languages":
+                                    languageScore++
+                                    break
+                                case "mathematics":
+                                    mathScore++
+                                    break
+                                case "natural_sciences":
+                                    natureScore++
+                                    break
+                                default: 
+                                    break
+                            }
+                        }else if(studentMockExam != null){
+                            if(studentMockExam.template[questionNumber-1] === answer) questions_correct_answers[questionNumber-1]--
                         }
+                    }else{
+                        error_flag = 3
+                        error_info['email'] = row.Emails
+                        error_info['question'] = question
+                        break
                     }
-                    if(mockflag == 0){
-                        student.mock_exams.push({
-                            mock_exam_id: mockExam._id,
-                            template: student_template,
-                            human_sciences_score: humanScore,
-                            natural_sciences_score: natureScore,
-                            languages_score: languageScore,
-                            mathematics_score: mathScore
-                        })
-                    }
+                }
+            }
+
+            // Se não houver mais de 185 ou menos de 180 questões 
+            if(student_template.length != 185 || error_flag > 0){
+                if(error_flag == 0) error_flag = 4
+                error_info['email'] = row.Emails
+                error_info['quantity'] = student_template.length
+                break
+            }
+
+            if(student.mock_exams){
+                if(studentMockExam != null){
+                    studentMockExam.template = student_template
+                    studentMockExam.human_sciences_score = humanScore
+                    studentMockExam.natural_sciences_score = natureScore
+                    studentMockExam.languages_score = languageScore
+                    studentMockExam.mathematics_score = mathScore
+                    break
                 }else{
-                    student.mock_exams = [{
+                    student.mock_exams.push({
                         mock_exam_id: mockExam._id,
                         template: student_template,
                         human_sciences_score: humanScore,
                         natural_sciences_score: natureScore,
                         languages_score: languageScore,
                         mathematics_score: mathScore
-                    }]
+                    })
                 }
-
-                await student.save()
-
-                achievementsGained = achievementsGained.concat(await mockExamAchievement(student, humanScore, natureScore, languageScore, mathScore))
-
-                break
+            }else{
+                student.mock_exams = [{
+                    mock_exam_id: mockExam._id,
+                    template: student_template,
+                    human_sciences_score: humanScore,
+                    natural_sciences_score: natureScore,
+                    languages_score: languageScore,
+                    mathematics_score: mathScore
+                }]
             }
-        }
-        
-        // Se não achou o estudante salva para notificar o usuario
-        if(studentFlag == 0){
-            error_flag = -1
-            invalid_emails.push(row.Emails)
+
+            await student.save()
+
+            achievementsGained = achievementsGained.concat(await mockExamAchievement(student, humanScore, natureScore, languageScore, mathScore))
         }
     }
-
     return {error_flag, error_info, invalid_emails, achievementsGained}
 }
 
@@ -337,10 +348,12 @@ class MockExamController {
                 error_info = values.error_info
 
                 if(error_flag === 0){
+                    const questions_correct_answers = new Array(185).fill(0)
                     mockExam = await new MockExam({
                         date, 
                         template: official_template,
-                        questions_subject: subjects
+                        questions_subject: subjects,
+                        questions_correct_answers
                     }).save()
 
                     let studentValues = await insertOrUpdateStudentsTemplate(students_template_64, mockExam, questionSubjectAreas)
