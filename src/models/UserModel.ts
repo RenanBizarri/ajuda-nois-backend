@@ -183,9 +183,12 @@ export const UserSchema: mongoose.Schema = new mongoose.Schema<IUser>({
 })
 
 UserSchema.pre('save', async function(next){
-    if(!this.isModified("password")) next()
-    this.password = await bcrypt.hash(this.password, 10);
-    next();
+    if(!this.isModified("password")){ 
+        next()
+    }else{
+        this.password = await bcrypt.hash(this.password, 10);
+        next();
+    }
 })
 
 const User = mongoose.model<IUser>("User", UserSchema);
