@@ -516,8 +516,6 @@ class UserController{
                         let mockExamGraphAux: any[] = []
                         for(let i = 0; i < 185; i++){
                             const question_subject = subjects.filter((subject: any): any => {
-                                console.log(subject._id)
-                                console.log(mock_exam.questions_subject[i])
                                 return subject._id.toString() === mock_exam.questions_subject[i].toString()
                             })
 

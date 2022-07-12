@@ -83,7 +83,7 @@ async function insertOrUpdateStudentsTemplate(base64: string, mockExam: any, sub
 
     const possibleAnswers = ["", "a", "b", "c", "d", "e", "A", "B", "C", "D", "E"]
     const template = mockExam.template
-    let achievementsGained: any[] = []
+    let achievementsGained: any[] = [],  questions_correct_answers = mockExam.questions_correct_answers
 
     for(let i = 0; i < sheet_data.length; i++){
         const row: any = sheet_data[i]
@@ -101,7 +101,7 @@ async function insertOrUpdateStudentsTemplate(base64: string, mockExam: any, sub
             error_flag = -1
             invalid_emails.push(row.Emails)
         }else{
-            let student_template: string[] = [], humanScore = 0, natureScore = 0, mathScore = 0, languageScore = 0, questions_correct_answers = mockExam.questions_correct_answers
+            let student_template: string[] = [], humanScore = 0, natureScore = 0, mathScore = 0, languageScore = 0
 
             let studentMockExam: any = null
             if(student.mock_exams){
@@ -195,6 +195,9 @@ async function insertOrUpdateStudentsTemplate(base64: string, mockExam: any, sub
             achievementsGained = achievementsGained.concat(await mockExamAchievement(student, humanScore, natureScore, languageScore, mathScore))
         }
     }
+    mockExam.questions_correct_answers = questions_correct_answers
+    await mockExam.save()
+
     return {error_flag, error_info, invalid_emails, achievementsGained}
 }
 
