@@ -361,11 +361,12 @@ class QuizController {
                                 questions_answered = quiz.questions_ids.length
                                 quiz_index = index
                                 quiz.questions_ids.forEach((question: any): any => {
-                                    if(question.toString() === quiz_id.toString()) questionFlag = true
+                                    if(question.toString() === question_id.toString()) questionFlag = true
                                 })
                             }
                         })
                     }
+
 
                     if(questions_answered >= quiz[0].questions_ids.length){
                         return res.status(200).json({
